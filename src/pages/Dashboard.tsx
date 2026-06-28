@@ -460,7 +460,7 @@ export const Dashboard: React.FC = () => {
     { id: 'adminOverview', icon: '📊', label: 'Overview' },
     { id: 'authors', icon: '👤', label: 'Authors' },
     { id: 'books', icon: '📚', label: 'Books' },
-    { id: 'salesEntry', icon: '🧾', label: 'Sales Entry' },
+    { id: 'addEntries', icon: '➕', label: 'Add Section' },
     { id: 'payments', icon: '₹', label: 'Payments' }
   ]
 
@@ -472,6 +472,17 @@ export const Dashboard: React.FC = () => {
 
       switch (page) {
         case 'overview':
+          if (authorData.sold === 0) {
+            return (
+              <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>📚</div>
+                <h3>No Published Books or Sales Yet</h3>
+                <p style={{ marginTop: '10px', maxWidth: '500px', margin: '10px auto 0', lineHeight: '1.6' }}>
+                  Welcome! Your book details, sales chart, and royalty reports will be displayed here once the publisher admin logs your first monthly sales entry.
+                </p>
+              </div>
+            )
+          }
           return (
             <>
               <div className="cards">
@@ -520,6 +531,17 @@ export const Dashboard: React.FC = () => {
           )
 
         case 'sales':
+          if (authorData.sold === 0) {
+            return (
+              <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>📈</div>
+                <h3>Sales Reports Unavailable</h3>
+                <p style={{ marginTop: '10px', maxWidth: '500px', margin: '10px auto 0', lineHeight: '1.6' }}>
+                  No sales entries have been logged by the publisher admin yet. Please check back later.
+                </p>
+              </div>
+            )
+          }
           return (
             <>
               <div className="grid-2">
@@ -591,6 +613,17 @@ export const Dashboard: React.FC = () => {
           )
 
         case 'royalty':
+          if (authorData.sold === 0) {
+            return (
+              <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>₹</div>
+                <h3>Royalty Statements Empty</h3>
+                <p style={{ marginTop: '10px', maxWidth: '500px', margin: '10px auto 0', lineHeight: '1.6' }}>
+                  Royalty calculations will begin once the publisher admin logs your monthly sales figures.
+                </p>
+              </div>
+            )
+          }
           return (
             <>
               <div className="cards">
@@ -610,6 +643,17 @@ export const Dashboard: React.FC = () => {
           )
 
         case 'documents':
+          if (authorData.sold === 0) {
+            return (
+              <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
+                <div style={{ fontSize: '48px', marginBottom: '20px' }}>📄</div>
+                <h3>Documents & Status Unavailable</h3>
+                <p style={{ marginTop: '10px', maxWidth: '500px', margin: '10px auto 0', lineHeight: '1.6' }}>
+                  Your official documents and publishing workflow status will be available once sales logs are generated.
+                </p>
+              </div>
+            )
+          }
           return (
             <div className="grid-3">
               <div className="card">
@@ -798,7 +842,7 @@ export const Dashboard: React.FC = () => {
               <div className="card">
                 <div className="section-title">
                   <h3>Overall Monthly Sales</h3>
-                  <button className="btn btn-soft" onClick={() => setPage('salesEntry')}>Add Sales</button>
+                  <button className="btn btn-soft" onClick={() => setPage('addEntries')}>Add Sales</button>
                 </div>
                 {renderChart(adminChartData)}
               </div>
@@ -841,102 +885,46 @@ export const Dashboard: React.FC = () => {
 
       case 'authors':
         return (
-          <div className="grid-2">
-            {/* Add New User Card */}
-            <div className="card">
-              <div className="section-title">
-                <h3>Add New User (Author)</h3>
-              </div>
-              <form onSubmit={handleAdminAddUser}>
-                <div className="field">
-                  <label>Author Name</label>
-                  <input 
-                    type="text" 
-                    value={adminNewName} 
-                    onChange={(e) => setAdminNewName(e.target.value)} 
-                    placeholder="e.g. Ramesh Kumar"
-                    required 
-                  />
-                </div>
-                <div className="field">
-                  <label>Email Address</label>
-                  <input 
-                    type="email" 
-                    value={adminNewEmail} 
-                    onChange={(e) => setAdminNewEmail(e.target.value)} 
-                    placeholder="e.g. ramesh@example.com"
-                    required 
-                  />
-                </div>
-                <div className="field">
-                  <label>Password</label>
-                  <input 
-                    type="password" 
-                    value={adminNewPassword} 
-                    onChange={(e) => setAdminNewPassword(e.target.value)} 
-                    placeholder="Set login password"
-                    required 
-                  />
-                </div>
-                <div className="field">
-                  <label>Phone Number</label>
-                  <input 
-                    type="tel" 
-                    value={adminNewPhone} 
-                    onChange={(e) => setAdminNewPhone(e.target.value.replace(/\D/g, ''))} 
-                    placeholder="e.g. 9958271481"
-                    maxLength={10}
-                    required 
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Add User</button>
-              </form>
+          <div className="card">
+            <div className="section-title">
+              <h3>Users Details</h3>
             </div>
-
-            {/* Users Details List */}
-            <div className="card">
-              <div className="section-title">
-                <h3>Users Details</h3>
-              </div>
-              <div className="table-responsive">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Book</th>
-                      <th style={{ textAlign: 'center' }}>Actions</th>
+            <div className="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th style={{ textAlign: 'center' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {authors.map((a) => (
+                    <tr key={a.id}>
+                      <td><b>{a.name}</b></td>
+                      <td>{a.email}</td>
+                      <td>{a.phoneNumber || 'N/A'}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button 
+                          className="btn" 
+                          style={{ 
+                            background: '#ef4444', 
+                            color: '#fff', 
+                            padding: '6px 12px', 
+                            fontSize: '11px', 
+                            borderRadius: '6px',
+                            fontWeight: 'bold'
+                          }}
+                          onClick={() => handleAdminDeleteUser(a.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {authors.map((a) => (
-                      <tr key={a.id}>
-                        <td><b>{a.name}</b></td>
-                        <td>{a.email}</td>
-                        <td>{a.phoneNumber || 'N/A'}</td>
-                        <td>{a.bookTitle}</td>
-                        <td style={{ textAlign: 'center' }}>
-                          <button 
-                            className="btn" 
-                            style={{ 
-                              background: '#ef4444', 
-                              color: '#fff', 
-                              padding: '6px 12px', 
-                              fontSize: '11px', 
-                              borderRadius: '6px',
-                              fontWeight: 'bold'
-                            }}
-                            onClick={() => handleAdminDeleteUser(a.id)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )
@@ -978,75 +966,147 @@ export const Dashboard: React.FC = () => {
           </div>
         )
 
-      case 'salesEntry':
+      case 'addEntries':
         return (
-          <div className="card">
-            <h3>Add Monthly Sales Entry</h3>
-            <p style={{ color: 'var(--muted)', marginBottom: '18px' }}>
-              Select an author and month to manually update their sales count.
-            </p>
-            <div className="form-grid">
-              <div className="field">
-                <label>Select Author & Book</label>
-                <select id="salesAuthorId">
-                  {authors.map(a => (
-                    <option key={a.id} value={a.id}>{a.name} ({a.bookTitle})</option>
-                  ))}
-                </select>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '18px' }}>
+            {/* Add New User Card */}
+            <div className="card">
+              <div className="section-title">
+                <h3>Add New User (Author)</h3>
               </div>
-              <div className="field">
-                <label>Select Month</label>
-                <select id="salesMonth">
-                  <option value="Jun">June 2026</option>
-                  <option value="May">May 2026</option>
-                  <option value="Apr">April 2026</option>
-                  <option value="Mar">March 2026</option>
-                </select>
-              </div>
-              <div className="field">
-                <label>Copies Sold</label>
-                <input id="salesCopies" type="number" defaultValue="10" />
-              </div>
+              <form onSubmit={handleAdminAddUser}>
+                <div className="form-grid">
+                  <div className="field">
+                    <label>Author Name</label>
+                    <input 
+                      type="text" 
+                      value={adminNewName} 
+                      onChange={(e) => setAdminNewName(e.target.value)} 
+                      placeholder="e.g. Ramesh Kumar"
+                      required 
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Email Address</label>
+                    <input 
+                      type="email" 
+                      value={adminNewEmail} 
+                      onChange={(e) => setAdminNewEmail(e.target.value)} 
+                      placeholder="e.g. ramesh@example.com"
+                      required 
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Password</label>
+                    <input 
+                      type="password" 
+                      value={adminNewPassword} 
+                      onChange={(e) => setAdminNewPassword(e.target.value)} 
+                      placeholder="Set login password"
+                      required 
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Phone Number</label>
+                    <input 
+                      type="tel" 
+                      value={adminNewPhone} 
+                      onChange={(e) => setAdminNewPhone(e.target.value.replace(/\D/g, ''))} 
+                      placeholder="e.g. 9958271481"
+                      maxLength={10}
+                      required 
+                    />
+                  </div>
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>Add User</button>
+              </form>
             </div>
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                const authorSelect = document.getElementById('salesAuthorId') as HTMLSelectElement
-                const monthSelect = document.getElementById('salesMonth') as HTMLSelectElement
-                const copiesInput = document.getElementById('salesCopies') as HTMLInputElement
-                
-                const targetId = authorSelect.value
-                const mVal = monthSelect.value
-                const copiesVal = parseInt(copiesInput.value) || 0
 
-                setAuthors(prev => prev.map(a => {
-                  if (a.id === targetId) {
-                    const updatedMonths = a.months.map(m => {
-                      if (m.name === mVal) {
-                        const newCopies = m.copies + copiesVal
-                        return { ...m, copies: newCopies, gross: newCopies * a.mrp }
-                      }
-                      return m
-                    })
-                    const totalSold = updatedMonths.reduce((sum, item) => sum + item.copies, 0)
-                    const totalRoyalty = Math.round(totalSold * a.mrp * 0.45)
-                    const pendingRoyalty = totalRoyalty - a.paid
-                    return {
-                      ...a,
-                      months: updatedMonths,
-                      sold: totalSold,
-                      royalty: totalRoyalty,
-                      pending: pendingRoyalty > 0 ? pendingRoyalty : 0
-                    }
+            {/* Add Monthly Sales Card */}
+            <div className="card">
+              <div className="section-title">
+                <h3>Add Monthly Sales Entry</h3>
+              </div>
+              <p style={{ color: 'var(--muted)', marginBottom: '18px' }}>
+                Select an author, enter the book name, select a month, and update their sales count.
+              </p>
+              <div className="form-grid">
+                <div className="field">
+                  <label>Select Author</label>
+                  <select id="salesAuthorId">
+                    {authors.map(a => (
+                      <option key={a.id} value={a.id}>{a.name} (Current Book: {a.bookTitle})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Book Name / Title</label>
+                  <input id="salesBookTitle" type="text" placeholder="e.g. मेरे सपनों का भारत" required />
+                </div>
+                <div className="field">
+                  <label>Select Month</label>
+                  <select id="salesMonth">
+                    <option value="Jun">June 2026</option>
+                    <option value="May">May 2026</option>
+                    <option value="Apr">April 2026</option>
+                    <option value="Mar">March 2026</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Copies Sold</label>
+                  <input id="salesCopies" type="number" defaultValue="10" />
+                </div>
+              </div>
+              <button
+                className="btn btn-primary"
+                style={{ width: '100%', marginTop: '16px' }}
+                onClick={() => {
+                  const authorSelect = document.getElementById('salesAuthorId') as HTMLSelectElement
+                  const bookTitleInput = document.getElementById('salesBookTitle') as HTMLInputElement
+                  const monthSelect = document.getElementById('salesMonth') as HTMLSelectElement
+                  const copiesInput = document.getElementById('salesCopies') as HTMLInputElement
+                  
+                  const targetId = authorSelect.value
+                  const bookTitleVal = bookTitleInput.value.trim()
+                  const mVal = monthSelect.value
+                  const copiesVal = parseInt(copiesInput.value) || 0
+
+                  if (!bookTitleVal) {
+                    showToast('Please enter a book name!')
+                    return
                   }
-                  return a
-                }))
 
-                showToast(`Success: Logged ${copiesVal} copies for author!`)
-              }}
-            >
-              Add Copies
-            </button>
+                  setAuthors(prev => prev.map(a => {
+                    if (a.id === targetId) {
+                      const updatedMonths = a.months.map(m => {
+                        if (m.name === mVal) {
+                          const newCopies = m.copies + copiesVal
+                          return { ...m, copies: newCopies, gross: newCopies * a.mrp }
+                        }
+                        return m
+                      })
+                      const totalSold = updatedMonths.reduce((sum, item) => sum + item.copies, 0)
+                      const totalRoyalty = Math.round(totalSold * a.mrp * 0.45)
+                      const pendingRoyalty = totalRoyalty - a.paid
+                      return {
+                        ...a,
+                        bookTitle: bookTitleVal,
+                        months: updatedMonths,
+                        sold: totalSold,
+                        royalty: totalRoyalty,
+                        pending: pendingRoyalty > 0 ? pendingRoyalty : 0
+                      }
+                    }
+                    return a
+                  }))
+
+                  showToast(`Success: Logged ${copiesVal} copies & updated book title to "${bookTitleVal}"!`)
+                  bookTitleInput.value = ''
+                }}
+              >
+                Add Copies
+              </button>
+            </div>
           </div>
         )
 
@@ -1163,7 +1223,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <h1>Author Portal</h1>
               <p>
-                लॉगिन करके अपनी बुक्स, सेल्स और रॉयल्टी रिपोर्ट्स देखें। यदि आप नए लेखक हैं, तो रजिस्टर करके अपना एकाउंट बनाएं।
+                लॉगिन करके अपनी बुक्स, सेल्स और रॉयल्टी रिपोर्ट्स देखें।
               </p>
               <div className="feature-grid">
                 <div className="feature">✓ Private Login Accounts</div>
@@ -1175,118 +1235,32 @@ export const Dashboard: React.FC = () => {
             
             <div className="form-side">
               <div style={{ marginBottom: '20px', borderBottom: '1px solid var(--line)', paddingBottom: '10px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--ink)' }}>Log In</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--ink)' }}>Account Log In</h3>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <button 
-                  type="button"
-                  className={`btn btn-soft ${loginMethod === 'email' ? 'active' : ''}`}
-                  style={{ padding: '6px 12px', fontSize: '12px', flex: 1, borderRadius: '8px' }}
-                  onClick={() => setLoginMethod('email')}
-                >
-                  Email Login
-                </button>
-                <button 
-                  type="button"
-                  className={`btn btn-soft ${loginMethod === 'otp' ? 'active' : ''}`}
-                  style={{ padding: '6px 12px', fontSize: '12px', flex: 1, borderRadius: '8px' }}
-                  onClick={() => setLoginMethod('otp')}
-                >
-                  Mobile OTP Login
-                </button>
-              </div>
-
-              {loginMethod === 'email' ? (
-                <form onSubmit={handleLoginSubmit}>
-                  <div className="field">
-                    <label>Login Type</label>
-                    <select value={loginRole} onChange={handleRoleChange}>
-                      <option value="author">Author Login</option>
-                      <option value="admin">Publisher Admin Login</option>
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label>Email Address</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                  </div>
-                  <div className="field">
-                    <label>Password</label>
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                  </div>
-                  <div className="login-row">
-                    <button type="submit" className="btn btn-primary">Log In</button>
-                    <button type="button" className="btn btn-ghost" onClick={handleQuickAdmin}>Admin Demo</button>
-                  </div>
-                </form>
-              ) : (
-                <div>
-                  {!otpSent ? (
-                    <form onSubmit={handleSendOtp}>
-                      <div className="field">
-                        <label>Mobile Number</label>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <span style={{ padding: '14px', background: 'var(--soft)', border: '1px solid var(--line)', borderRadius: '14px', fontSize: '14px', color: 'var(--ink)' }}>+91</span>
-                          <input 
-                            type="tel" 
-                            value={mobileNumber} 
-                            onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ''))} 
-                            placeholder="Enter 10 digit number"
-                            maxLength={10}
-                            required 
-                          />
-                        </div>
-                      </div>
-                      <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Send OTP SMS</button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleVerifyOtp}>
-                      <div className="field">
-                        <label>Enter 4-Digit OTP Code</label>
-                        <input 
-                          type="text" 
-                          value={otpCode} 
-                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))} 
-                          placeholder="Enter 1234 for demo" 
-                          maxLength={4}
-                          required 
-                        />
-                        <small style={{ display: 'block', marginTop: '6px', color: 'var(--muted)' }}>
-                          Demo Verification Code sent to +91 {mobileNumber}. Hint: 1234
-                        </small>
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setOtpSent(false)}>Back</button>
-                        <button type="submit" className="btn btn-primary" style={{ flex: 1.5 }}>Verify & Login</button>
-                      </div>
-                    </form>
-                  )}
+              <form onSubmit={handleLoginSubmit}>
+                <div className="field">
+                  <label>Login Type</label>
+                  <select value={loginRole} onChange={handleRoleChange}>
+                    <option value="author">Author Login</option>
+                    <option value="admin">Publisher Admin Login</option>
+                  </select>
                 </div>
-              )}
+                <div className="field">
+                  <label>Email Address</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div className="field">
+                  <label>Password</label>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </div>
+                <div className="login-row">
+                  <button type="submit" className="btn btn-primary">Log In</button>
+                  <button type="button" className="btn btn-ghost" onClick={handleQuickAdmin}>Admin Demo</button>
+                </div>
+              </form>
 
-              <div style={{ margin: '20px 0', textAlign: 'center', position: 'relative' }}>
-                <hr style={{ border: 'none', borderTop: '1px solid var(--line)' }} />
-                <span style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'var(--card)', padding: '0 10px', fontSize: '12px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                  OR
-                </span>
-              </div>
-
-              <button 
-                type="button" 
-                className="btn btn-ghost" 
-                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}
-                onClick={handleGoogleLogin}
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18">
-                  <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.91c1.7-1.56 2.69-3.86 2.69-6.6z"/>
-                  <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.2l-2.91-2.26c-.8.54-1.83.86-3.05.86-2.34 0-4.32-1.58-5.03-3.7H1.02v2.33A9 9 0 0 0 9 18z"/>
-                  <path fill="#FBBC05" d="M3.97 10.7a5.4 5.4 0 0 1 0-3.4V4.97H1.02a9 9 0 0 0 0 8.06l2.95-2.33z"/>
-                  <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35L15 2A9 9 0 0 0 1.02 4.97l2.95 2.33c.7-2.12 2.69-3.7 5.03-3.7z"/>
-                </svg>
-                Continue with Google
-              </button>
-
-              <div className="hint" style={{ marginTop: '16px' }}>
+              <div className="hint" style={{ marginTop: '24px' }}>
                 Demo credentials:<br />
                 Author: author@mbpublication.in / 123456<br />
                 Admin: admin@mbpublication.in / 123456
