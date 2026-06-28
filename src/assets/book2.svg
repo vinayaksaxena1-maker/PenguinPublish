@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+  <rect width="200" height="260" rx="8" fill="#fff" stroke="#ddd" />
+  <rect x="12" y="20" width="176" height="220" fill="#eef9ff" />
+  <text x="20" y="60" font-size="20" fill="#333">Featured</text>
+</svg>
