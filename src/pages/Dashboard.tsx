@@ -22,6 +22,7 @@ interface AuthorAccount {
   paid: number;
   months: MonthSales[];
   status: string;
+  phoneNumber?: string;
 }
 
 interface SupportTicket {
@@ -141,6 +142,17 @@ export const Dashboard: React.FC = () => {
   const [supportSubject, setSupportSubject] = useState('Royalty payment update')
   const [supportMessage, setSupportMessage] = useState('Please share my next royalty payout date.')
 
+  // Admin "Add New User" state inputs
+  const [adminNewName, setAdminNewName] = useState('')
+  const [adminNewEmail, setAdminNewEmail] = useState('')
+  const [adminNewPassword, setAdminNewPassword] = useState('')
+  const [adminNewPhone, setAdminNewPhone] = useState('')
+
+  // Author "Update Password" state inputs
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+
   // Toast notifier helper
   const showToast = (msg: string) => {
     setToastMessage(msg)
@@ -173,7 +185,7 @@ export const Dashboard: React.FC = () => {
         setPage('overview')
         showToast(`Welcome back, ${found.name}!`)
       } else {
-        showToast('Incorrect Email or Password!')
+        showToast('Access Denied: Incorrect Email or Password!')
       }
     }
   }
@@ -287,6 +299,110 @@ export const Dashboard: React.FC = () => {
     setPage('overview')
   }
 
+  // Admin: Add new user/author
+  const handleAdminAddUser = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!adminNewName || !adminNewEmail || !adminNewPassword || !adminNewPhone) {
+      showToast('Please fill out all fields!')
+      return
+    }
+
+    const exists = authors.some(a => a.email.toLowerCase() === adminNewEmail.toLowerCase())
+    if (exists || adminNewEmail.toLowerCase() === 'admin@mbpublication.in') {
+      showToast('Error: Email address already registered!')
+      return
+    }
+
+    const newAuthor: AuthorAccount = {
+      id: `author-${Date.now()}`,
+      name: adminNewName,
+      email: adminNewEmail,
+      passwordHash: adminNewPassword,
+      phoneNumber: adminNewPhone,
+      bookTitle: 'अघोषित पुस्तक (TBD)',
+      isbn: '978-93-00000-XX-X',
+      mrp: 250,
+      sold: 0,
+      royalty: 0,
+      paid: 0,
+      pending: 0,
+      months: [
+        { name: 'Jan', copies: 0, gross: 0 },
+        { name: 'Feb', copies: 0, gross: 0 },
+        { name: 'Mar', copies: 0, gross: 0 },
+        { name: 'Apr', copies: 0, gross: 0 },
+        { name: 'May', copies: 0, gross: 0 },
+        { name: 'Jun', copies: 0, gross: 0 }
+      ],
+      status: 'Active'
+    }
+
+    setAuthors(prev => [...prev, newAuthor])
+    showToast(`Author "${adminNewName}" added successfully!`)
+
+    // Clear fields
+    setAdminNewName('')
+    setAdminNewEmail('')
+    setAdminNewPassword('')
+    setAdminNewPhone('')
+  }
+
+  // Admin: Delete user/author
+  const handleAdminDeleteUser = (authorId: string) => {
+    const authorToDelete = authors.find(a => a.id === authorId)
+    if (!authorToDelete) return
+
+    if (window.confirm(`Are you sure you want to delete author "${authorToDelete.name}"?`)) {
+      setAuthors(prev => prev.filter(a => a.id !== authorId))
+      showToast(`Author "${authorToDelete.name}" deleted successfully!`)
+    }
+  }
+
+  // Author: Change password
+  const handlePasswordUpdate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!currentAuthor) return
+
+    const authorIndex = authors.findIndex(a => a.id === currentAuthor.id)
+    if (authorIndex === -1) {
+      showToast('Error: Author not found!')
+      return
+    }
+
+    const currentRecord = authors[authorIndex]
+    if (currentRecord.passwordHash !== currentPassword) {
+      showToast('Access Denied: Current password is incorrect!')
+      return
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      showToast('Error: New passwords do not match!')
+      return
+    }
+
+    // Update password in database array
+    const updatedAuthors = [...authors]
+    updatedAuthors[authorIndex] = {
+      ...currentRecord,
+      passwordHash: newPassword
+    }
+    setAuthors(updatedAuthors)
+
+    // Update currentAuthor session state
+    setCurrentAuthor({
+      ...currentAuthor,
+      passwordHash: newPassword
+    })
+
+    // Reset inputs
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmNewPassword('')
+
+    showToast('Password updated successfully!')
+  }
+
   const money = (n: number) => '₹' + n.toLocaleString('en-IN')
 
   const renderMetric = (label: string, value: string | number, small: string) => (
@@ -336,7 +452,8 @@ export const Dashboard: React.FC = () => {
     { id: 'sales', icon: '📈', label: 'Sales' },
     { id: 'royalty', icon: '₹', label: 'Royalty' },
     { id: 'documents', icon: '📄', label: 'Documents' },
-    { id: 'support', icon: '💬', label: 'Support' }
+    { id: 'support', icon: '💬', label: 'Support' },
+    { id: 'security', icon: '🔑', label: 'Security' }
   ]
 
   const adminNav = [
@@ -594,6 +711,45 @@ export const Dashboard: React.FC = () => {
             </div>
           )
 
+        case 'security':
+          return (
+            <div className="card" style={{ maxWidth: '500px', margin: '0 auto' }}>
+              <div className="section-title">
+                <h3>Change Password</h3>
+              </div>
+              <form onSubmit={handlePasswordUpdate}>
+                <div className="field">
+                  <label>Current Password</label>
+                  <input 
+                    type="password" 
+                    value={currentPassword} 
+                    onChange={(e) => setCurrentPassword(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <div className="field">
+                  <label>New Password</label>
+                  <input 
+                    type="password" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <div className="field">
+                  <label>Confirm New Password</label>
+                  <input 
+                    type="password" 
+                    value={confirmNewPassword} 
+                    onChange={(e) => setConfirmNewPassword(e.target.value)} 
+                    required 
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Update Password</button>
+              </form>
+            </div>
+          )
+
         default:
           return <div>Page not found</div>
       }
@@ -685,33 +841,102 @@ export const Dashboard: React.FC = () => {
 
       case 'authors':
         return (
-          <div className="card">
-            <div className="section-title">
-              <h3>Author Registration Log</h3>
+          <div className="grid-2">
+            {/* Add New User Card */}
+            <div className="card">
+              <div className="section-title">
+                <h3>Add New User (Author)</h3>
+              </div>
+              <form onSubmit={handleAdminAddUser}>
+                <div className="field">
+                  <label>Author Name</label>
+                  <input 
+                    type="text" 
+                    value={adminNewName} 
+                    onChange={(e) => setAdminNewName(e.target.value)} 
+                    placeholder="e.g. Ramesh Kumar"
+                    required 
+                  />
+                </div>
+                <div className="field">
+                  <label>Email Address</label>
+                  <input 
+                    type="email" 
+                    value={adminNewEmail} 
+                    onChange={(e) => setAdminNewEmail(e.target.value)} 
+                    placeholder="e.g. ramesh@example.com"
+                    required 
+                  />
+                </div>
+                <div className="field">
+                  <label>Password</label>
+                  <input 
+                    type="password" 
+                    value={adminNewPassword} 
+                    onChange={(e) => setAdminNewPassword(e.target.value)} 
+                    placeholder="Set login password"
+                    required 
+                  />
+                </div>
+                <div className="field">
+                  <label>Phone Number</label>
+                  <input 
+                    type="tel" 
+                    value={adminNewPhone} 
+                    onChange={(e) => setAdminNewPhone(e.target.value.replace(/\D/g, ''))} 
+                    placeholder="e.g. 9958271481"
+                    maxLength={10}
+                    required 
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Add User</button>
+              </form>
             </div>
-            <div className="table-responsive">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Author Name</th>
-                    <th>Email Address</th>
-                    <th>Book Title</th>
-                    <th>Pending Royalty</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {authors.map((a) => (
-                    <tr key={a.id}>
-                      <td>{a.name}</td>
-                      <td>{a.email}</td>
-                      <td>{a.bookTitle}</td>
-                      <td>{money(a.pending)}</td>
-                      <td><span className="status live">{a.status}</span></td>
+
+            {/* Users Details List */}
+            <div className="card">
+              <div className="section-title">
+                <h3>Users Details</h3>
+              </div>
+              <div className="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Book</th>
+                      <th style={{ textAlign: 'center' }}>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {authors.map((a) => (
+                      <tr key={a.id}>
+                        <td><b>{a.name}</b></td>
+                        <td>{a.email}</td>
+                        <td>{a.phoneNumber || 'N/A'}</td>
+                        <td>{a.bookTitle}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button 
+                            className="btn" 
+                            style={{ 
+                              background: '#ef4444', 
+                              color: '#fff', 
+                              padding: '6px 12px', 
+                              fontSize: '11px', 
+                              borderRadius: '6px',
+                              fontWeight: 'bold'
+                            }}
+                            onClick={() => handleAdminDeleteUser(a.id)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )
@@ -949,160 +1174,123 @@ export const Dashboard: React.FC = () => {
             </div>
             
             <div className="form-side">
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--line)', paddingBottom: '10px' }}>
+              <div style={{ marginBottom: '20px', borderBottom: '1px solid var(--line)', paddingBottom: '10px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--ink)' }}>Log In</h3>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                 <button 
-                  className={`btn ${loginTab === 'login' ? 'btn-primary' : 'btn-ghost'}`} 
-                  style={{ padding: '8px 16px', fontSize: '13px', borderRadius: '10px' }} 
-                  onClick={() => setLoginTab('login')}
+                  type="button"
+                  className={`btn btn-soft ${loginMethod === 'email' ? 'active' : ''}`}
+                  style={{ padding: '6px 12px', fontSize: '12px', flex: 1, borderRadius: '8px' }}
+                  onClick={() => setLoginMethod('email')}
                 >
-                  Log In
+                  Email Login
                 </button>
                 <button 
-                  className={`btn ${loginTab === 'register' ? 'btn-primary' : 'btn-ghost'}`} 
-                  style={{ padding: '8px 16px', fontSize: '13px', borderRadius: '10px' }} 
-                  onClick={() => setLoginTab('register')}
+                  type="button"
+                  className={`btn btn-soft ${loginMethod === 'otp' ? 'active' : ''}`}
+                  style={{ padding: '6px 12px', fontSize: '12px', flex: 1, borderRadius: '8px' }}
+                  onClick={() => setLoginMethod('otp')}
                 >
-                  Register (New Author)
+                  Mobile OTP Login
                 </button>
               </div>
 
-              {loginTab === 'login' ? (
-                <>
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                    <button 
-                      type="button"
-                      className={`btn btn-soft ${loginMethod === 'email' ? 'active' : ''}`}
-                      style={{ padding: '6px 12px', fontSize: '12px', flex: 1, borderRadius: '8px' }}
-                      onClick={() => setLoginMethod('email')}
-                    >
-                      Email Login
-                    </button>
-                    <button 
-                      type="button"
-                      className={`btn btn-soft ${loginMethod === 'otp' ? 'active' : ''}`}
-                      style={{ padding: '6px 12px', fontSize: '12px', flex: 1, borderRadius: '8px' }}
-                      onClick={() => setLoginMethod('otp')}
-                    >
-                      Mobile OTP Login
-                    </button>
-                  </div>
-
-                  {loginMethod === 'email' ? (
-                    <form onSubmit={handleLoginSubmit}>
-                      <div className="field">
-                        <label>Login Type</label>
-                        <select value={loginRole} onChange={handleRoleChange}>
-                          <option value="author">Author Login</option>
-                          <option value="admin">Publisher Admin Login</option>
-                        </select>
-                      </div>
-                      <div className="field">
-                        <label>Email Address</label>
-                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                      </div>
-                      <div className="field">
-                        <label>Password</label>
-                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                      </div>
-                      <div className="login-row">
-                        <button type="submit" className="btn btn-primary">Log In</button>
-                        <button type="button" className="btn btn-ghost" onClick={handleQuickAdmin}>Admin Demo</button>
-                      </div>
-                    </form>
-                  ) : (
-                    <div>
-                      {!otpSent ? (
-                        <form onSubmit={handleSendOtp}>
-                          <div className="field">
-                            <label>Mobile Number</label>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <span style={{ padding: '14px', background: 'var(--soft)', border: '1px solid var(--line)', borderRadius: '14px', fontSize: '14px', color: 'var(--ink)' }}>+91</span>
-                              <input 
-                                type="tel" 
-                                value={mobileNumber} 
-                                onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ''))} 
-                                placeholder="Enter 10 digit number"
-                                maxLength={10}
-                                required 
-                              />
-                            </div>
-                          </div>
-                          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Send OTP SMS</button>
-                        </form>
-                      ) : (
-                        <form onSubmit={handleVerifyOtp}>
-                          <div className="field">
-                            <label>Enter 4-Digit OTP Code</label>
-                            <input 
-                              type="text" 
-                              value={otpCode} 
-                              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))} 
-                              placeholder="Enter 1234 for demo" 
-                              maxLength={4}
-                              required 
-                            />
-                            <small style={{ display: 'block', marginTop: '6px', color: 'var(--muted)' }}>
-                              Demo Verification Code sent to +91 {mobileNumber}. Hint: 1234
-                            </small>
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setOtpSent(false)}>Back</button>
-                            <button type="submit" className="btn btn-primary" style={{ flex: 1.5 }}>Verify & Login</button>
-                          </div>
-                        </form>
-                      )}
-                    </div>
-                  )}
-
-                  <div style={{ margin: '20px 0', textAlign: 'center', position: 'relative' }}>
-                    <hr style={{ border: 'none', borderTop: '1px solid var(--line)' }} />
-                    <span style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'var(--card)', padding: '0 10px', fontSize: '12px', color: 'var(--muted)', fontWeight: 'bold' }}>
-                      OR
-                    </span>
-                  </div>
-
-                  <button 
-                    type="button" 
-                    className="btn btn-ghost" 
-                    style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}
-                    onClick={handleGoogleLogin}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 18 18">
-                      <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.91c1.7-1.56 2.69-3.86 2.69-6.6z"/>
-                      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.2l-2.91-2.26c-.8.54-1.83.86-3.05.86-2.34 0-4.32-1.58-5.03-3.7H1.02v2.33A9 9 0 0 0 9 18z"/>
-                      <path fill="#FBBC05" d="M3.97 10.7a5.4 5.4 0 0 1 0-3.4V4.97H1.02a9 9 0 0 0 0 8.06l2.95-2.33z"/>
-                      <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35L15 2A9 9 0 0 0 1.02 4.97l2.95 2.33c.7-2.12 2.69-3.7 5.03-3.7z"/>
-                    </svg>
-                    Continue with Google
-                  </button>
-
-                  <div className="hint" style={{ marginTop: '16px' }}>
-                    Demo credentials:<br />
-                    Author: author@mbpublication.in / 123456<br />
-                    Admin: admin@mbpublication.in / 123456
-                  </div>
-                </>
-              ) : (
-                <form onSubmit={handleRegisterSubmit}>
+              {loginMethod === 'email' ? (
+                <form onSubmit={handleLoginSubmit}>
                   <div className="field">
-                    <label>Full Author Name</label>
-                    <input type="text" value={regName} onChange={(e) => setRegName(e.target.value)} required placeholder="e.g. Ramesh Kumar" />
+                    <label>Login Type</label>
+                    <select value={loginRole} onChange={handleRoleChange}>
+                      <option value="author">Author Login</option>
+                      <option value="admin">Publisher Admin Login</option>
+                    </select>
                   </div>
                   <div className="field">
                     <label>Email Address</label>
-                    <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required placeholder="e.g. ramesh@example.com" />
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                   </div>
                   <div className="field">
                     <label>Password</label>
-                    <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required placeholder="Choose a strong password" />
+                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                   </div>
-                  <div className="field">
-                    <label>Book Title (Optional)</label>
-                    <input type="text" value={regBook} onChange={(e) => setRegBook(e.target.value)} placeholder="e.g. मेरे जीवन की उड़ान" />
+                  <div className="login-row">
+                    <button type="submit" className="btn btn-primary">Log In</button>
+                    <button type="button" className="btn btn-ghost" onClick={handleQuickAdmin}>Admin Demo</button>
                   </div>
-                  <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Register Account</button>
                 </form>
+              ) : (
+                <div>
+                  {!otpSent ? (
+                    <form onSubmit={handleSendOtp}>
+                      <div className="field">
+                        <label>Mobile Number</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <span style={{ padding: '14px', background: 'var(--soft)', border: '1px solid var(--line)', borderRadius: '14px', fontSize: '14px', color: 'var(--ink)' }}>+91</span>
+                          <input 
+                            type="tel" 
+                            value={mobileNumber} 
+                            onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ''))} 
+                            placeholder="Enter 10 digit number"
+                            maxLength={10}
+                            required 
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Send OTP SMS</button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleVerifyOtp}>
+                      <div className="field">
+                        <label>Enter 4-Digit OTP Code</label>
+                        <input 
+                          type="text" 
+                          value={otpCode} 
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))} 
+                          placeholder="Enter 1234 for demo" 
+                          maxLength={4}
+                          required 
+                        />
+                        <small style={{ display: 'block', marginTop: '6px', color: 'var(--muted)' }}>
+                          Demo Verification Code sent to +91 {mobileNumber}. Hint: 1234
+                        </small>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setOtpSent(false)}>Back</button>
+                        <button type="submit" className="btn btn-primary" style={{ flex: 1.5 }}>Verify & Login</button>
+                      </div>
+                    </form>
+                  )}
+                </div>
               )}
+
+              <div style={{ margin: '20px 0', textAlign: 'center', position: 'relative' }}>
+                <hr style={{ border: 'none', borderTop: '1px solid var(--line)' }} />
+                <span style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'var(--card)', padding: '0 10px', fontSize: '12px', color: 'var(--muted)', fontWeight: 'bold' }}>
+                  OR
+                </span>
+              </div>
+
+              <button 
+                type="button" 
+                className="btn btn-ghost" 
+                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}
+                onClick={handleGoogleLogin}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84a4.14 4.14 0 0 1-1.8 2.71v2.26h2.91c1.7-1.56 2.69-3.86 2.69-6.6z"/>
+                  <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.2l-2.91-2.26c-.8.54-1.83.86-3.05.86-2.34 0-4.32-1.58-5.03-3.7H1.02v2.33A9 9 0 0 0 9 18z"/>
+                  <path fill="#FBBC05" d="M3.97 10.7a5.4 5.4 0 0 1 0-3.4V4.97H1.02a9 9 0 0 0 0 8.06l2.95-2.33z"/>
+                  <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35L15 2A9 9 0 0 0 1.02 4.97l2.95 2.33c.7-2.12 2.69-3.7 5.03-3.7z"/>
+                </svg>
+                Continue with Google
+              </button>
+
+              <div className="hint" style={{ marginTop: '16px' }}>
+                Demo credentials:<br />
+                Author: author@mbpublication.in / 123456<br />
+                Admin: admin@mbpublication.in / 123456
+              </div>
             </div>
           </div>
         </div>
