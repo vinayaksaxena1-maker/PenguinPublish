@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { 
   Phone, 
   Mail, 
@@ -26,6 +27,10 @@ const BadgeDollarSignIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 const Contact: React.FC = () => {
+  const [searchParams] = useSearchParams()
+  const bookParam = searchParams.get('book')
+  const defaultMessage = bookParam ? `I would like to order the book: "${bookParam}"` : ''
+
   const [formSent, setFormSent] = useState(false)
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
 
@@ -256,10 +261,10 @@ const Contact: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* Row 3 */}
                   <div>
                     <textarea 
                       placeholder="Message" 
+                      defaultValue={defaultMessage}
                       required 
                       className="w-full h-[180px] p-4 border border-[#E6E0D5] bg-white rounded-[10px] text-sm text-[#2C2520] focus:border-[#F97316] focus:outline-none transition-colors resize-none"
                     />

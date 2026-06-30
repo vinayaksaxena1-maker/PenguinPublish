@@ -75,11 +75,10 @@ const BookCard: React.FC<BookCardProps> = ({ book, showButton = false }) => {
       {/* Optional Details Button */}
       {showButton && (
         <a
-          href={`/books/${book.slug}`}
-          onClick={(e) => e.preventDefault()}
+          href={`/contact?book=${encodeURIComponent(book.title)}`}
           className="btn-premium-orange w-full h-[44px] group/btn"
         >
-          View Details 
+          Order Now
           <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover/btn:translate-x-1" />
         </a>
       )}
