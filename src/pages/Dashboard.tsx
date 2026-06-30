@@ -2,10 +2,26 @@ import React, { useState, useEffect } from 'react'
 import './Dashboard.css'
 import logoImg from '../assets/Logo1.png'
 
+const formatSaleDate = (dateStr: string) => {
+  if (!dateStr) return 'N/A';
+  if (dateStr.includes('-')) {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+  }
+  return `${dateStr} 2026`;
+};
+
 interface MonthSales {
   name: string;
   copies: number;
   gross: number;
+  royalty?: number;
+  status?: 'Pending' | 'Paid';
+  bookTitle?: string;
+  mrp?: number;
+  isbn?: string;
 }
 
 interface AuthorAccount {
@@ -147,6 +163,14 @@ export const Dashboard: React.FC = () => {
   const [adminNewEmail, setAdminNewEmail] = useState('')
   const [adminNewPassword, setAdminNewPassword] = useState('')
   const [adminNewPhone, setAdminNewPhone] = useState('')
+
+  // Admin "Payment Update" state inputs
+  const [payUpdateAuthorId, setPayUpdateAuthorId] = useState('')
+  const [payUpdateCopies, setPayUpdateCopies] = useState('')
+  const [payUpdatePaid, setPayUpdatePaid] = useState('')
+  
+  // Admin "Payments Report" filter
+  const [paymentFilterAuthorId, setPaymentFilterAuthorId] = useState('all')
 
   // Author "Update Password" state inputs
   const [currentPassword, setCurrentPassword] = useState('')
@@ -359,6 +383,61 @@ export const Dashboard: React.FC = () => {
     }
   }
 
+  // Admin: Payment Update Submit
+  const handlePaymentUpdateSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const targetId = payUpdateAuthorId || (authors[0]?.id || '')
+    if (!targetId) {
+      showToast('Error: No author selected!')
+      return
+    }
+
+    const authorIndex = authors.findIndex(a => a.id === targetId)
+    if (authorIndex === -1) {
+      showToast('Error: Author not found!')
+      return
+    }
+
+    const copiesVal = Math.max(0, parseInt(payUpdateCopies) || 0)
+    const paidVal = Math.max(0, parseFloat(payUpdatePaid) || 0)
+
+    const updatedAuthors = [...authors]
+    const targetAuthor = updatedAuthors[authorIndex]
+
+    // Update copies and paid in the latest month, keep others unchanged
+    const updatedMonths = targetAuthor.months.map((m, idx) => {
+      if (idx === targetAuthor.months.length - 1) {
+        return {
+          ...m,
+          copies: copiesVal,
+          paid: paidVal
+        }
+      }
+      return m
+    })
+
+    const newSold = updatedMonths.reduce((sum, m) => sum + m.copies, 0)
+    const newRoyalty = updatedMonths.reduce((sum, m) => sum + (m.royalty || 0), 0)
+    const newPaid = updatedMonths.reduce((sum, m) => sum + (m.paid || 0), 0)
+    const newPending = Math.max(0, newRoyalty - newPaid)
+
+    updatedAuthors[authorIndex] = {
+      ...targetAuthor,
+      months: updatedMonths,
+      sold: newSold,
+      royalty: newRoyalty,
+      paid: newPaid,
+      pending: newPending
+    }
+
+    setAuthors(updatedAuthors)
+    showToast(`Success: Updated sales & payment info for "${targetAuthor.name}"!`)
+
+    // Clear inputs
+    setPayUpdateCopies('')
+    setPayUpdatePaid('')
+  }
+
   // Author: Change password
   const handlePasswordUpdate = (e: React.FormEvent) => {
     e.preventDefault()
@@ -450,8 +529,6 @@ export const Dashboard: React.FC = () => {
   const authorNav = [
     { id: 'overview', icon: '📊', label: 'Overview' },
     { id: 'sales', icon: '📈', label: 'Sales' },
-    { id: 'royalty', icon: '₹', label: 'Royalty' },
-    { id: 'documents', icon: '📄', label: 'Documents' },
     { id: 'support', icon: '💬', label: 'Support' },
     { id: 'security', icon: '🔑', label: 'Security' }
   ]
@@ -461,7 +538,9 @@ export const Dashboard: React.FC = () => {
     { id: 'authors', icon: '👤', label: 'Authors' },
     { id: 'books', icon: '📚', label: 'Books' },
     { id: 'addEntries', icon: '➕', label: 'Add Section' },
-    { id: 'payments', icon: '₹', label: 'Payments' }
+    { id: 'payments', icon: '₹', label: 'Payments' },
+    { id: 'queries', icon: '💬', label: 'Support Tickets' },
+    { id: 'help', icon: '❓', label: 'Help Section' }
   ]
 
   const navItems = currentAuthor ? authorNav : adminNav
@@ -472,7 +551,21 @@ export const Dashboard: React.FC = () => {
 
       switch (page) {
         case 'overview':
-          if (authorData.sold === 0) {
+          const activeOverviewMonths = authorData.months.filter((m) => {
+            const hasCopies = m.copies > 0
+            const hasTotalCopies = m.totalCopies !== undefined && m.totalCopies > 0
+            const hasRoyalty = m.royalty !== undefined && m.royalty > 0
+            const hasMrp = m.mrp !== undefined && m.mrp > 0
+            return hasCopies || hasTotalCopies || hasRoyalty || hasMrp
+          })
+
+          activeOverviewMonths.sort((r1, r2) => {
+            const d1 = new Date(r1.name).getTime()
+            const d2 = new Date(r2.name).getTime()
+            return d1 - d2
+          })
+
+          if (activeOverviewMonths.length === 0) {
             return (
               <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
                 <div style={{ fontSize: '48px', marginBottom: '20px' }}>📚</div>
@@ -483,13 +576,19 @@ export const Dashboard: React.FC = () => {
               </div>
             )
           }
+
+          const totalCopiesSold = activeOverviewMonths.reduce((sum, m) => sum + (m.copies || 0), 0)
+          const totalRoyaltyVal = activeOverviewMonths.reduce((sum, m) => sum + (m.royalty || 0), 0)
+          const totalPaidVal = activeOverviewMonths.reduce((sum, m) => sum + (m.paid || 0), 0)
+          const totalPendingVal = Math.max(0, totalRoyaltyVal - totalPaidVal)
+
           return (
             <>
               <div className="cards">
-                {renderMetric('Total Copies Sold', authorData.sold, 'Jan–Jun 2026')}
-                {renderMetric('Total Royalty', money(authorData.royalty), 'Calculated after costs')}
-                {renderMetric('Paid Amount', money(authorData.paid), 'Last updated by admin')}
-                {renderMetric('Pending Amount', money(authorData.pending), 'Payout process status')}
+                {renderMetric('Total Copies Sold', totalCopiesSold, 'Logged entries total')}
+                {renderMetric('Total Royalty', money(totalRoyaltyVal), 'Calculated royalty')}
+                {renderMetric('Paid Amount', money(totalPaidVal), 'Completed payouts')}
+                {renderMetric('Pending Amount', money(totalPendingVal), 'Payout process status')}
               </div>
               <div className="grid-2">
                 <div className="card">
@@ -497,7 +596,7 @@ export const Dashboard: React.FC = () => {
                     <h3>Monthly Sales</h3>
                     <span className="status live">Live Report</span>
                   </div>
-                  {renderChart(authorData)}
+                  {renderChart({ months: activeOverviewMonths } as any)}
                 </div>
                 <div className="card">
                   <div className="section-title">
@@ -505,33 +604,40 @@ export const Dashboard: React.FC = () => {
                     <span className="status live">Published</span>
                   </div>
                   <div className="book-card">
-                    <div className="cover">{authorData.bookTitle.slice(0, 10)}</div>
+                    <div className="cover">{(activeOverviewMonths[0]?.bookTitle || authorData.bookTitle).slice(0, 10)}</div>
                     <div>
-                      <h4>{authorData.bookTitle}</h4>
+                      <h4>{activeOverviewMonths[0]?.bookTitle || authorData.bookTitle}</h4>
                       <p><b>Author:</b> {authorData.name}</p>
-                      <p><b>ISBN:</b> {authorData.isbn}</p>
-                      <p><b>MRP:</b> ₹{authorData.mrp}</p>
+                      <p><b>ISBN:</b> {activeOverviewMonths[0]?.isbn || authorData.isbn}</p>
+                      <p><b>MRP:</b> ₹{activeOverviewMonths[0]?.mrp || authorData.mrp}</p>
                       <p><b>Links:</b> Amazon • Flipkart</p>
                       <div className="progress">
-                        <span style={{ width: authorData.sold > 0 ? '78%' : '20%' }}></span>
+                        <span style={{ width: totalCopiesSold > 0 ? '78%' : '20%' }}></span>
                       </div>
-                      <p>Publishing workflow: {authorData.sold > 0 ? '78% complete' : 'Ready'}</p>
+                      <p>Publishing workflow: {totalCopiesSold > 0 ? '78% complete' : 'Ready'}</p>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="card">
-                <div className="section-title">
-                  <h3>Recent Royalty Entries</h3>
-                  <button className="btn btn-soft" onClick={() => setPage('royalty')}>View Full</button>
-                </div>
-                {renderRoyaltyTable(authorData)}
               </div>
             </>
           )
 
         case 'sales':
-          if (authorData.sold === 0) {
+          const activeSalesMonths = authorData.months.filter((m) => {
+            const hasCopies = m.copies > 0
+            const hasTotalCopies = m.totalCopies !== undefined && m.totalCopies > 0
+            const hasRoyalty = m.royalty !== undefined && m.royalty > 0
+            const hasMrp = m.mrp !== undefined && m.mrp > 0
+            return hasCopies || hasTotalCopies || hasRoyalty || hasMrp
+          })
+
+          activeSalesMonths.sort((r1, r2) => {
+            const d1 = new Date(r1.name).getTime()
+            const d2 = new Date(r2.name).getTime()
+            return d1 - d2
+          })
+
+          if (activeSalesMonths.length === 0) {
             return (
               <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
                 <div style={{ fontSize: '48px', marginBottom: '20px' }}>📈</div>
@@ -542,173 +648,53 @@ export const Dashboard: React.FC = () => {
               </div>
             )
           }
+
           return (
-            <>
-              <div className="grid-2">
-                <div className="card">
-                  <div className="section-title">
-                    <h3>Sales Trend</h3>
-                    <span className="status live">Auto/Manual Update</span>
-                  </div>
-                  {renderChart(authorData)}
-                </div>
-                <div className="card">
-                  <h3>Platform Split</h3>
-                  <div className="table-responsive">
-                    <table>
-                      <tbody>
-                        <tr>
-                          <td>Amazon</td>
-                          <td>{Math.round(authorData.sold * 0.52)} copies</td>
-                          <td>52%</td>
-                        </tr>
-                        <tr>
-                          <td>Flipkart</td>
-                          <td>{Math.round(authorData.sold * 0.29)} copies</td>
-                          <td>29%</td>
-                        </tr>
-                        <tr>
-                          <td>Direct Publisher Sale</td>
-                          <td>{authorData.sold - Math.round(authorData.sold * 0.52) - Math.round(authorData.sold * 0.29)} copies</td>
-                          <td>19%</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+            <div className="card">
+              <div className="section-title">
+                <h3>Detailed Sales</h3>
               </div>
-              <div className="card">
-                <div className="section-title">
-                  <h3>Detailed Monthly Sales</h3>
-                  <button className="btn btn-soft" onClick={() => showToast('PDF report download demo')}>Download PDF</button>
-                </div>
-                <div className="table-responsive">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Month</th>
-                        <th>Amazon</th>
-                        <th>Flipkart</th>
-                        <th>Direct</th>
-                        <th>Total Copies</th>
-                        <th>Report</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[...authorData.months].reverse().map((m, idx) => (
+              <div className="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Book Title</th>
+                      <th>ISBN</th>
+                      <th>MRP</th>
+                      <th>Total Copies</th>
+                      <th>Copies Sold</th>
+                      <th>Total Royalty</th>
+                      <th>Paid Royalty</th>
+                      <th>Pending Payout</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeSalesMonths.map((m, idx) => {
+                      const rowMrp = m.mrp !== undefined ? m.mrp : authorData.mrp
+                      const rowIsbn = m.isbn !== undefined ? m.isbn : authorData.isbn
+                      const rowTotalCopies = m.totalCopies !== undefined ? m.totalCopies : 0
+                      const rowMonthCopiesSold = m.copies || 0
+                      const rowTotalRoyalty = m.royalty !== undefined ? m.royalty : 0
+                      const rowPaidRoyalty = m.paid !== undefined ? m.paid : 0
+                      const rowPendingRoyalty = Math.max(0, rowTotalRoyalty - rowPaidRoyalty)
+
+                      return (
                         <tr key={idx}>
-                          <td>{m.name} 2026</td>
-                          <td>{Math.round(m.copies * .52)}</td>
-                          <td>{Math.round(m.copies * .29)}</td>
-                          <td>{m.copies - Math.round(m.copies * .52) - Math.round(m.copies * .29)}</td>
-                          <td><b>{m.copies}</b></td>
-                          <td><span className="status live">Available</span></td>
+                          <td>{formatSaleDate(m.name)}</td>
+                          <td>{m.bookTitle || authorData.bookTitle}</td>
+                          <td>{rowIsbn}</td>
+                          <td>{money(rowMrp)}</td>
+                          <td>{rowTotalCopies}</td>
+                          <td>{rowMonthCopiesSold}</td>
+                          <td>{money(rowTotalRoyalty)}</td>
+                          <td>{money(rowPaidRoyalty)}</td>
+                          <td><b>{money(rowPendingRoyalty)}</b></td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          )
-
-        case 'royalty':
-          if (authorData.sold === 0) {
-            return (
-              <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
-                <div style={{ fontSize: '48px', marginBottom: '20px' }}>₹</div>
-                <h3>Royalty Statements Empty</h3>
-                <p style={{ marginTop: '10px', maxWidth: '500px', margin: '10px auto 0', lineHeight: '1.6' }}>
-                  Royalty calculations will begin once the publisher admin logs your monthly sales figures.
-                </p>
-              </div>
-            )
-          }
-          return (
-            <>
-              <div className="cards">
-                {renderMetric('Royalty Rate', '45%', 'After printing/platform cost')}
-                {renderMetric('Total Royalty', money(authorData.royalty), 'For current financial period')}
-                {renderMetric('Pending', money(authorData.pending), 'Processing')}
-                {renderMetric('Paid', money(authorData.paid), 'Completed')}
-              </div>
-              <div className="card">
-                <div className="section-title">
-                  <h3>Royalty Calculation</h3>
-                  <button className="btn btn-soft" onClick={() => showToast('Royalty statement generated')}>Generate Statement</button>
-                </div>
-                {renderRoyaltyTable(authorData)}
-              </div>
-            </>
-          )
-
-        case 'documents':
-          if (authorData.sold === 0) {
-            return (
-              <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
-                <div style={{ fontSize: '48px', marginBottom: '20px' }}>📄</div>
-                <h3>Documents & Status Unavailable</h3>
-                <p style={{ marginTop: '10px', maxWidth: '500px', margin: '10px auto 0', lineHeight: '1.6' }}>
-                  Your official documents and publishing workflow status will be available once sales logs are generated.
-                </p>
-              </div>
-            )
-          }
-          return (
-            <div className="grid-3">
-              <div className="card">
-                <h3>Book Status</h3>
-                <div className="steps">
-                  <div className="step">
-                    <div className="dot">✓</div>
-                    <div>
-                      <strong>ISBN Allotted</strong>
-                      <small>{authorData.isbn}</small>
-                    </div>
-                  </div>
-                  <div className="step">
-                    <div className="dot">✓</div>
-                    <div>
-                      <strong>Cover Design Completed</strong>
-                      <small>Final print cover uploaded</small>
-                    </div>
-                  </div>
-                  <div className="step">
-                    <div className="dot">✓</div>
-                    <div>
-                      <strong>Amazon Listing Live</strong>
-                      <small>Book page active</small>
-                    </div>
-                  </div>
-                  <div className="step muted">
-                    <div className="dot">•</div>
-                    <div>
-                      <strong>Flipkart Listing</strong>
-                      <small>Verification pending</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="card" style={{ gridColumn: 'span 2' }}>
-                <h3>Downloads</h3>
-                <div className="doc-list">
-                  <div className="doc">
-                    <b>Publication Certificate.pdf</b>
-                    <button className="btn btn-soft" onClick={() => showToast('Certificate download demo')}>Download</button>
-                  </div>
-                  <div className="doc">
-                    <b>Author Agreement.pdf</b>
-                    <button className="btn btn-soft" onClick={() => showToast('Agreement download demo')}>Download</button>
-                  </div>
-                  <div className="doc">
-                    <b>June Royalty Statement.pdf</b>
-                    <button className="btn btn-soft" onClick={() => showToast('Statement download demo')}>Download</button>
-                  </div>
-                  <div className="doc">
-                    <b>Book Cover PNG.jpg</b>
-                    <button className="btn btn-soft" onClick={() => showToast('Cover download demo')}>Download</button>
-                  </div>
-                </div>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           )
@@ -741,7 +727,7 @@ export const Dashboard: React.FC = () => {
                           <tr key={idx}>
                             <td>{t.subject}</td>
                             <td>
-                              <span className={`status ${t.status === 'Resolved' ? 'paid' : t.status === 'In Progress' ? 'live' : 'pending'}`}>
+                              <span className={`status ${t.status === 'Read' ? 'paid' : 'pending'}`}>
                                 {t.status}
                               </span>
                             </td>
@@ -804,39 +790,46 @@ export const Dashboard: React.FC = () => {
         const totalAuthors = authors.length
         const totalBooks = authors.length
         const totalPending = authors.reduce((sum, a) => sum + a.pending, 0)
-        const openTicketsCount = tickets.filter(t => t.status !== 'Resolved').length
+        const totalPaidAmount = authors.reduce((sum, a) => sum + (a.paid || 0), 0)
 
-        const averageMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((monthName) => {
-          const totalMonthCopies = authors.reduce((sum, a) => {
-            const m = a.months.find(mon => mon.name === monthName)
-            return sum + (m ? m.copies : 0)
-          }, 0)
-          return { name: monthName, copies: totalMonthCopies, gross: 0 }
+        // Compile active months chart data dynamically
+        const activeMonthsMap: { [key: string]: { dateStr: string; copies: number } } = {}
+        authors.forEach(a => {
+          a.months.forEach(m => {
+            const hasCopies = m.copies > 0
+            const hasTotalCopies = m.totalCopies !== undefined && m.totalCopies > 0
+            const hasRoyalty = m.royalty !== undefined && m.royalty > 0
+            const hasMrp = m.mrp !== undefined && m.mrp > 0
+            if (hasCopies || hasTotalCopies || hasRoyalty || hasMrp) {
+              const label = formatSaleDate(m.name)
+              if (!activeMonthsMap[label]) {
+                activeMonthsMap[label] = { dateStr: m.name, copies: 0 }
+              }
+              activeMonthsMap[label].copies += m.copies || 0
+            }
+          })
         })
 
-        const adminChartData: AuthorAccount = {
-          id: 'admin',
-          name: 'Admin',
-          email: '',
-          passwordHash: '',
-          bookTitle: '',
-          isbn: '',
-          mrp: 0,
-          sold: 0,
-          royalty: 0,
-          paid: 0,
-          pending: 0,
-          months: averageMonths,
-          status: 'Active'
-        }
+        const chartDataArray = Object.keys(activeMonthsMap).map(label => ({
+          name: label,
+          dateStr: activeMonthsMap[label].dateStr,
+          copies: activeMonthsMap[label].copies
+        }))
+
+        // Sort by dateStr ascending order
+        chartDataArray.sort((a, b) => {
+          const d1 = new Date(a.dateStr).getTime()
+          const d2 = new Date(b.dateStr).getTime()
+          return d1 - d2
+        })
 
         return (
           <>
             <div className="cards">
               {renderMetric('Total Authors', totalAuthors, 'All registered accounts')}
               {renderMetric('Published Books', totalBooks, 'Catalog records')}
+              {renderMetric('Total Payouts', money(totalPaidAmount), 'Paid royalty')}
               {renderMetric('Pending Payouts', money(totalPending), 'Awaiting approval')}
-              {renderMetric('Open Tickets', openTicketsCount, 'Need response')}
             </div>
             <div className="grid-2">
               <div className="card">
@@ -844,7 +837,13 @@ export const Dashboard: React.FC = () => {
                   <h3>Overall Monthly Sales</h3>
                   <button className="btn btn-soft" onClick={() => setPage('addEntries')}>Add Sales</button>
                 </div>
-                {renderChart(adminChartData)}
+                {chartDataArray.length === 0 ? (
+                  <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>
+                    No sales logged yet. Chart will appear here once entries are added.
+                  </div>
+                ) : (
+                  renderChart({ months: chartDataArray } as any)
+                )}
               </div>
               <div className="card">
                 <h3>Workflow</h3>
@@ -852,29 +851,29 @@ export const Dashboard: React.FC = () => {
                   <div className="step">
                     <div className="dot">1</div>
                     <div>
-                      <strong>Add/Register Author</strong>
-                      <small>New authors register or admin adds credentials</small>
+                      <strong>Register Author</strong>
+                      <small>Admin tab me author aur book register karein.</small>
                     </div>
                   </div>
                   <div className="step">
                     <div className="dot">2</div>
                     <div>
-                      <strong>Assign Book Details</strong>
-                      <small>Set ISBN, MRP and listing links</small>
+                      <strong>Add Sales Entry</strong>
+                      <small>Date, stock aur royalty fill karein (sold copies defaults to 0).</small>
                     </div>
                   </div>
                   <div className="step">
                     <div className="dot">3</div>
                     <div>
-                      <strong>Add Monthly Sales</strong>
-                      <small>Input sales reports in Sales Entry tab</small>
+                      <strong>Payment Update</strong>
+                      <small>Biki hui copies aur paid amount log karein.</small>
                     </div>
                   </div>
                   <div className="step">
                     <div className="dot">4</div>
                     <div>
-                      <strong>Approve Payments</strong>
-                      <small>Processed payments reflect in author panel</small>
+                      <strong>Auto-Calculations</strong>
+                      <small>Dynamic pending amount aur catalog records automatic update honge.</small>
                     </div>
                   </div>
                 </div>
@@ -943,23 +942,24 @@ export const Dashboard: React.FC = () => {
                     <th>Author Name</th>
                     <th>ISBN</th>
                     <th>MRP</th>
-                    <th>Status</th>
+                    <th>Total Copies</th>
+                    <th>Total Royalty</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {authors.map((a) => (
-                    <tr key={a.id}>
-                      <td>{a.bookTitle}</td>
-                      <td>{a.name}</td>
-                      <td>{a.isbn}</td>
-                      <td>₹{a.mrp}</td>
-                      <td>
-                        <span className={`status ${a.sold > 0 ? 'live' : 'draft'}`}>
-                          {a.sold > 0 ? 'Published' : 'Listing Pending'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {authors.map((a) => {
+                    const totalPrinted = a.months.reduce((sum, m) => sum + (m.totalCopies || 0), 0)
+                    return (
+                      <tr key={a.id}>
+                        <td>{a.bookTitle}</td>
+                        <td>{a.name}</td>
+                        <td>{a.isbn}</td>
+                        <td>₹{a.mrp}</td>
+                        <td>{totalPrinted}</td>
+                        <td>{money(a.royalty)}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -968,7 +968,7 @@ export const Dashboard: React.FC = () => {
 
       case 'addEntries':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
             {/* Add New User Card */}
             <div className="card">
               <div className="section-title">
@@ -999,22 +999,20 @@ export const Dashboard: React.FC = () => {
                   <div className="field">
                     <label>Password</label>
                     <input 
-                      type="password" 
+                      type="text" 
                       value={adminNewPassword} 
                       onChange={(e) => setAdminNewPassword(e.target.value)} 
-                      placeholder="Set login password"
+                      placeholder="Enter password"
                       required 
                     />
                   </div>
                   <div className="field">
-                    <label>Phone Number</label>
+                    <label>Phone Number (Optional)</label>
                     <input 
-                      type="tel" 
+                      type="text" 
                       value={adminNewPhone} 
-                      onChange={(e) => setAdminNewPhone(e.target.value.replace(/\D/g, ''))} 
-                      placeholder="e.g. 9958271481"
-                      maxLength={10}
-                      required 
+                      onChange={(e) => setAdminNewPhone(e.target.value)} 
+                      placeholder="e.g. 9876543210"
                     />
                   </div>
                 </div>
@@ -1028,14 +1026,14 @@ export const Dashboard: React.FC = () => {
                 <h3>Add Monthly Sales Entry</h3>
               </div>
               <p style={{ color: 'var(--muted)', marginBottom: '18px' }}>
-                Select an author, enter the book name, select a month, and update their sales count.
+                Select an author, enter the book name, MRP, ISBN, select date, and total royalty.
               </p>
               <div className="form-grid">
                 <div className="field">
                   <label>Select Author</label>
                   <select id="salesAuthorId">
                     {authors.map(a => (
-                      <option key={a.id} value={a.id}>{a.name} (Current Book: {a.bookTitle})</option>
+                      <option key={a.id} value={a.id}>{a.name}</option>
                     ))}
                   </select>
                 </div>
@@ -1044,17 +1042,29 @@ export const Dashboard: React.FC = () => {
                   <input id="salesBookTitle" type="text" placeholder="e.g. मेरे सपनों का भारत" required />
                 </div>
                 <div className="field">
-                  <label>Select Month</label>
-                  <select id="salesMonth">
-                    <option value="Jun">June 2026</option>
-                    <option value="May">May 2026</option>
-                    <option value="Apr">April 2026</option>
-                    <option value="Mar">March 2026</option>
-                  </select>
+                  <label>MRP (₹)</label>
+                  <input id="salesMrp" type="number" min="0" placeholder="e.g. 299" required />
                 </div>
                 <div className="field">
-                  <label>Copies Sold</label>
-                  <input id="salesCopies" type="number" defaultValue="10" />
+                  <label>ISBN</label>
+                  <input id="salesIsbn" type="text" placeholder="e.g. 978-93-..." required />
+                </div>
+                <div className="field">
+                  <label>Select Date</label>
+                  <input 
+                    id="salesDate" 
+                    type="date" 
+                    defaultValue={new Date().toISOString().split('T')[0]} 
+                    required 
+                  />
+                </div>
+                <div className="field">
+                  <label>Total Copies (Printed Stock)</label>
+                  <input id="salesTotalCopies" type="number" min="0" defaultValue="8" required />
+                </div>
+                <div className="field">
+                  <label>Total Royalty (₹)</label>
+                  <input id="salesRoyalty" type="number" min="0" placeholder="e.g. 1520" required />
                 </div>
               </div>
               <button
@@ -1063,103 +1073,351 @@ export const Dashboard: React.FC = () => {
                 onClick={() => {
                   const authorSelect = document.getElementById('salesAuthorId') as HTMLSelectElement
                   const bookTitleInput = document.getElementById('salesBookTitle') as HTMLInputElement
-                  const monthSelect = document.getElementById('salesMonth') as HTMLSelectElement
-                  const copiesInput = document.getElementById('salesCopies') as HTMLInputElement
+                  const mrpInput = document.getElementById('salesMrp') as HTMLInputElement
+                  const isbnInput = document.getElementById('salesIsbn') as HTMLInputElement
+                  const dateInput = document.getElementById('salesDate') as HTMLInputElement
+                  const totalCopiesInput = document.getElementById('salesTotalCopies') as HTMLInputElement
+                  const royaltyInput = document.getElementById('salesRoyalty') as HTMLInputElement
                   
                   const targetId = authorSelect.value
                   const bookTitleVal = bookTitleInput.value.trim()
-                  const mVal = monthSelect.value
-                  const copiesVal = parseInt(copiesInput.value) || 0
+                  const mrpVal = Math.max(0, parseFloat(mrpInput.value) || 0)
+                  const isbnVal = isbnInput.value.trim()
+                  const dateVal = dateInput.value
+                  const totalCopiesVal = Math.max(0, parseInt(totalCopiesInput.value) || 0)
+                  const royaltyVal = Math.max(0, parseFloat(royaltyInput.value) || 0)
 
                   if (!bookTitleVal) {
                     showToast('Please enter a book name!')
                     return
                   }
+                  if (mrpInput.value === '') {
+                    showToast('Please enter MRP!')
+                    return
+                  }
+                  if (!isbnVal) {
+                    showToast('Please enter ISBN!')
+                    return
+                  }
+                  if (!dateVal) {
+                    showToast('Please select a date!')
+                    return
+                  }
+                  if (royaltyInput.value === '') {
+                    showToast('Please enter total royalty!')
+                    return
+                  }
 
                   setAuthors(prev => prev.map(a => {
                     if (a.id === targetId) {
-                      const updatedMonths = a.months.map(m => {
-                        if (m.name === mVal) {
-                          const newCopies = m.copies + copiesVal
-                          return { ...m, copies: newCopies, gross: newCopies * a.mrp }
-                        }
-                        return m
-                      })
+                      const newSale: MonthSales = {
+                        name: dateVal,
+                        copies: 0,
+                        gross: 0,
+                        royalty: royaltyVal,
+                        bookTitle: bookTitleVal,
+                        mrp: mrpVal,
+                        isbn: isbnVal,
+                        totalCopies: totalCopiesVal,
+                        paid: 0
+                      }
+                      
+                      const updatedMonths = [...a.months, newSale]
                       const totalSold = updatedMonths.reduce((sum, item) => sum + item.copies, 0)
-                      const totalRoyalty = Math.round(totalSold * a.mrp * 0.45)
-                      const pendingRoyalty = totalRoyalty - a.paid
+                      const totalRoyalty = updatedMonths.reduce((sum, item) => sum + (item.royalty || 0), 0)
+                      const totalPaid = updatedMonths.reduce((sum, item) => sum + (item.paid || 0), 0)
+                      const pendingRoyalty = Math.max(0, totalRoyalty - totalPaid)
+                      
                       return {
                         ...a,
                         bookTitle: bookTitleVal,
+                        mrp: mrpVal,
+                        isbn: isbnVal,
                         months: updatedMonths,
                         sold: totalSold,
                         royalty: totalRoyalty,
-                        pending: pendingRoyalty > 0 ? pendingRoyalty : 0
+                        paid: totalPaid,
+                        pending: pendingRoyalty
                       }
                     }
                     return a
                   }))
 
-                  showToast(`Success: Logged ${copiesVal} copies & updated book title to "${bookTitleVal}"!`)
+                  showToast(`Success: Logged sales and updated book details!`)
                   bookTitleInput.value = ''
+                  mrpInput.value = ''
+                  isbnInput.value = ''
+                  totalCopiesInput.value = ''
+                  royaltyInput.value = ''
                 }}
               >
                 Add Copies
               </button>
             </div>
+
+            {/* Payment Update Card */}
+            <div className="card">
+              <div className="section-title">
+                <h3>Payment Update</h3>
+              </div>
+              <p style={{ color: 'var(--muted)', marginBottom: '18px' }}>
+                Select a book to update copies sold and paid royalty.
+              </p>
+              
+              <div className="field">
+                <label>Select Book</label>
+                <select 
+                  value={payUpdateAuthorId || (authors[0]?.id || '')} 
+                  onChange={(e) => setPayUpdateAuthorId(e.target.value)}
+                >
+                  {authors.map(a => (
+                    <option key={a.id} value={a.id}>{a.bookTitle}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(() => {
+                const targetAuthorId = payUpdateAuthorId || (authors[0]?.id || '')
+                const targetAuthor = authors.find(a => a.id === targetAuthorId)
+                if (!targetAuthor) return null
+
+                // Get latest active month info
+                const latestMonth = targetAuthor.months[targetAuthor.months.length - 1]
+
+                return (
+                  <div style={{ background: 'var(--soft)', padding: '14px', borderRadius: '14px', fontSize: '13px', margin: '14px 0', border: '1px solid var(--line)', lineHeight: '1.6' }}>
+                    <p><b>Author:</b> {targetAuthor.name}</p>
+                    <p><b>MRP:</b> ₹{targetAuthor.mrp}</p>
+                    <p><b>ISBN:</b> {targetAuthor.isbn}</p>
+                    <p><b>Month:</b> {latestMonth?.name || 'N/A'}</p>
+                    <p><b>Total Copies (Printed):</b> {latestMonth?.totalCopies || 0}</p>
+                    <p><b>Month Copies Sold:</b> {latestMonth?.copies || 0}</p>
+                    <p><b>Total Royalty:</b> {money(latestMonth?.royalty || 0)}</p>
+                    <p><b>Paid Royalty:</b> {money(latestMonth?.paid || 0)}</p>
+                  </div>
+                )
+              })()}
+
+              <form onSubmit={handlePaymentUpdateSubmit}>
+                <div className="form-grid">
+                  <div className="field">
+                    <label>Month Copies Sold</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={payUpdateCopies} 
+                      onChange={(e) => setPayUpdateCopies(e.target.value.replace(/[^0-9]/g, ''))} 
+                      placeholder="e.g. 7" 
+                      required 
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Paid Royalty (₹)</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      value={payUpdatePaid} 
+                      onChange={(e) => setPayUpdatePaid(e.target.value.replace(/[^0-9.]/g, ''))} 
+                      placeholder="e.g. 1400" 
+                      required 
+                    />
+                  </div>
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>Update Payment</button>
+              </form>
+            </div>
           </div>
         )
 
       case 'payments':
+        const rows: {
+          author: AuthorAccount;
+          month: MonthSales;
+        }[] = []
+
+        authors.forEach(a => {
+          if (paymentFilterAuthorId !== 'all' && a.id !== paymentFilterAuthorId) {
+            return
+          }
+          a.months.forEach((m) => {
+            const hasCopies = m.copies > 0
+            const hasTotalCopies = m.totalCopies !== undefined && m.totalCopies > 0
+            const hasRoyalty = m.royalty !== undefined && m.royalty > 0
+            const hasMrp = m.mrp !== undefined && m.mrp > 0
+            if (hasCopies || hasTotalCopies || hasRoyalty || hasMrp) {
+              rows.push({ author: a, month: m })
+            }
+          })
+        })
+
+        rows.sort((r1, r2) => {
+          const d1 = new Date(r1.month.name).getTime()
+          const d2 = new Date(r2.month.name).getTime()
+          return d1 - d2
+        })
+
         return (
           <div className="card">
-            <h3>Manage Author Royalty Payouts</h3>
-            <p style={{ color: 'var(--muted)', marginBottom: '18px' }}>
-              Approve and mark payout clearances for pending royalties.
-            </p>
+            <div className="section-title">
+              <h3>Manage Author Payouts & Reports</h3>
+            </div>
+            
+            <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <label style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--ink)' }}>Filter by Author:</label>
+              <select 
+                value={paymentFilterAuthorId} 
+                onChange={(e) => setPaymentFilterAuthorId(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--ink)', fontSize: '14px', outline: 'none', minWidth: '200px', cursor: 'pointer' }}
+              >
+                <option value="all">All Authors</option>
+                {authors.map(a => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="table-responsive">
               <table>
                 <thead>
                   <tr>
-                    <th>Author Name</th>
+                    <th>Date / Month</th>
+                    <th>Book Name</th>
+                    <th>MRP (₹)</th>
+                    <th>Total Copies</th>
+                    <th>Month Copies Sold</th>
+                    <th>Total Royalty</th>
+                    <th>Paid Royalty</th>
                     <th>Pending Royalty</th>
-                    <th>Total Paid Already</th>
-                    <th>Clearance Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {authors.map((a) => (
-                    <tr key={a.id}>
-                      <td>{a.name}</td>
-                      <td>{money(a.pending)}</td>
-                      <td>{money(a.paid)}</td>
-                      <td>
-                        <button
-                          className="btn btn-primary btn-soft"
-                          style={{ padding: '6px 12px', fontSize: '12px' }}
-                          disabled={a.pending <= 0}
-                          onClick={() => {
-                            const toPay = a.pending
-                            setAuthors(prev => prev.map(item => {
-                              if (item.id === a.id) {
-                                return {
-                                  ...item,
-                                  paid: item.paid + toPay,
-                                  pending: 0
-                                }
-                              }
-                              return item
-                            }))
-                            showToast(`Cleared payment of ${money(toPay)} to ${a.name}!`)
-                          }}
-                        >
-                          Approve Payment
-                        </button>
+                  {rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)' }}>
+                        No monthly sales logged yet.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    rows.map((row, idx) => {
+                      const a = row.author
+                      const m = row.month
+                      
+                      const rowMrp = m.mrp !== undefined ? m.mrp : a.mrp
+                      const rowTotalCopies = m.totalCopies !== undefined ? m.totalCopies : 0
+                      const rowMonthCopiesSold = m.copies || 0
+                      const rowTotalRoyalty = m.royalty !== undefined ? m.royalty : 0
+                      const rowPaidRoyalty = m.paid !== undefined ? m.paid : 0
+                      const rowPendingRoyalty = Math.max(0, rowTotalRoyalty - rowPaidRoyalty)
+
+                      return (
+                        <tr key={`${a.id}-${m.name}-${idx}`}>
+                          <td>{formatSaleDate(m.name)}</td>
+                          <td>{m.bookTitle || a.bookTitle}</td>
+                          <td>{money(rowMrp)}</td>
+                          <td>{rowTotalCopies}</td>
+                          <td>{rowMonthCopiesSold}</td>
+                          <td>{money(rowTotalRoyalty)}</td>
+                          <td>{money(rowPaidRoyalty)}</td>
+                          <td><b>{money(rowPendingRoyalty)}</b></td>
+                        </tr>
+                      )
+                    })
+                  )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )
+
+      case 'queries':
+        return (
+          <div className="card">
+            <div className="section-title">
+              <h3>Support Tickets & Queries</h3>
+            </div>
+            {tickets.length === 0 ? (
+              <p style={{ color: 'var(--muted)', padding: '20px 0' }}>No support queries submitted by authors yet.</p>
+            ) : (
+              <div className="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Author</th>
+                      <th>Subject</th>
+                      <th>Message</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tickets.map((t) => (
+                      <tr key={t.id}>
+                        <td>{t.authorEmail}</td>
+                        <td><b>{t.subject}</b></td>
+                        <td>{t.message}</td>
+                        <td>
+                          <select
+                            value={t.status === 'Resolved' || t.status === 'Read' ? 'Read' : 'Pending'}
+                            onChange={(e) => {
+                              const newStatus = e.target.value === 'Read' ? 'Read' : 'Pending'
+                              setTickets((prevTickets) =>
+                                prevTickets.map((item) =>
+                                  item.id === t.id ? { ...item, status: newStatus as any } : item
+                                )
+                              )
+                              showToast(`Ticket status updated to ${newStatus}`)
+                            }}
+                            style={{
+                              padding: '4px 8px',
+                              fontSize: '12px',
+                              borderRadius: '6px',
+                              border: '1px solid var(--line)',
+                              background: 'var(--soft)',
+                              color: 'var(--ink)'
+                            }}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Read">Read</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )
+      
+      case 'help':
+        return (
+          <div className="card" style={{ lineHeight: '1.8' }}>
+            <div className="section-title">
+              <h3>Help & Workflow Guide</h3>
+            </div>
+            
+            <div style={{ marginTop: '20px' }}>
+              <h4 style={{ color: 'var(--primary)', fontSize: '16px', marginBottom: '8px' }}>Step 1: User Registration (Author Account)</h4>
+              <p style={{ color: 'var(--ink)', fontSize: '14px', marginBottom: '16px' }}>
+                Admin sabse pehle <strong>"Add Section"</strong> tab me jata hai aur <strong>"Add New User (Author)"</strong> form me credentials (Name, Email, Password, Phone) fill karke user register karta hai. Yeh author register hote hi baaki dropdowns me active ho jata hai.
+              </p>
+
+              <h4 style={{ color: 'var(--primary)', fontSize: '16px', marginBottom: '8px' }}>Step 2: Add Monthly Sales Entry (Initial Sale Logging)</h4>
+              <p style={{ color: 'var(--ink)', fontSize: '14px', marginBottom: '16px' }}>
+                Admin <strong>"Add Section"</strong> me <strong>"Add Monthly Sales Entry"</strong> form par jata hai. Waha dropdown se Author select karke Book Name, MRP, ISBN, Select Date, Total Copies (Printed Stock) aur Total Royalty (₹) bhar kar submit karta hai. <br />
+                <em>Note: Nayi entry hone par Month Copies Sold automatic 0 aur Paid Royalty ₹0 set ho jati hai, aur report me poori royalty pending dikhti hai.</em>
+              </p>
+
+              <h4 style={{ color: 'var(--primary)', fontSize: '16px', marginBottom: '8px' }}>Step 3: Payment Update (Sales & Payout Log)</h4>
+              <p style={{ color: 'var(--ink)', fontSize: '14px', marginBottom: '16px' }}>
+                Jab book bikna shuru ho aur admin author ko pay kare, tab wo <strong>"Add Section"</strong> tab me <strong>"Payment Update"</strong> form par jata hai. Waha dropdown se book select karke (sirf Book Name dikhega), uske niche details check karta hai aur sirf 2 fields bharta hai: <strong>Month Copies Sold</strong> aur <strong>Paid Royalty (₹)</strong>.
+              </p>
+
+              <h4 style={{ color: 'var(--primary)', fontSize: '16px', marginBottom: '8px' }}>Step 4: Payments Report & Books Catalog (Viewing & Calculations)</h4>
+              <p style={{ color: 'var(--ink)', fontSize: '14px', marginBottom: '16px' }}>
+                <strong>Payments Tab (Report Section):</strong> Yaha par biki hui copies, paid amount aur pending amount (Total Royalty - Paid Royalty) auto-calculate hokar choti date se badi date ke order me show hoti hai. Empty default months yaha show nahi hote.<br />
+                <strong>Books Tab (Book Records Catalog):</strong> Status pill ki jagah ab book ki Total Copies (Printed Stock) aur Total Royalty live show hoti hai.<br />
+                <strong>Author Portal Linking:</strong> Author dashboard me login karke apni details dekh sakega, jisme status "Pending Payout" ya "Cleared" automatic updates dikhega.
+              </p>
             </div>
           </div>
         )
@@ -1185,19 +1443,24 @@ export const Dashboard: React.FC = () => {
           </thead>
           <tbody>
             {[...authorData.months].reverse().map((m, idx) => {
-              const gross = m.copies * authorData.mrp
-              const ded = Math.round(gross * .55)
-              const roy = gross - ded
+              const rowMrp = m.mrp !== undefined ? m.mrp : authorData.mrp
+              const gross = m.copies * rowMrp
+              const roy = m.royalty !== undefined ? m.royalty : (gross - Math.round(gross * .55))
+              const ded = gross - roy
+              const rowPaid = m.paid !== undefined ? m.paid : 0
+              const rowPending = Math.max(0, roy - rowPaid)
+              const statusVal = roy === 0 ? 'No Sales' : rowPending === 0 ? 'Cleared' : 'Pending Payout'
+              const statusClass = roy === 0 ? 'draft' : rowPending === 0 ? 'paid' : 'pending'
               return (
                 <tr key={idx}>
-                  <td>{m.name} 2026</td>
+                  <td>{formatSaleDate(m.name)}</td>
                   <td>{m.copies}</td>
                   <td>{money(gross)}</td>
                   <td>{money(ded)}</td>
                   <td><b>{money(roy)}</b></td>
                   <td>
-                    <span className={`status ${roy === 0 ? 'draft' : idx < 2 ? 'pending' : 'paid'}`}>
-                      {roy === 0 ? 'No Sales' : idx < 2 ? 'Pending Payout' : 'Cleared'}
+                    <span className={`status ${statusClass}`}>
+                      {statusVal}
                     </span>
                   </td>
                 </tr>
@@ -1291,6 +1554,19 @@ export const Dashboard: React.FC = () => {
             </nav>
             <div className="side-footer">
               Demo portal only.<br />Real database configuration integrates database server API layers.
+              <button 
+                className="btn btn-soft" 
+                style={{ marginTop: '8px', padding: '4px 8px', fontSize: '11px', width: '100%', border: '1px dashed var(--line)' }}
+                onClick={() => {
+                  if (window.confirm('Reset local database to default mock values? All current entries will be lost.')) {
+                    localStorage.removeItem('mb_authors')
+                    localStorage.removeItem('mb_tickets')
+                    window.location.reload()
+                  }
+                }}
+              >
+                Reset Demo Data
+              </button>
             </div>
           </aside>
           
