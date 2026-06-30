@@ -341,12 +341,12 @@ const About: React.FC = () => {
             {/* Member 1 */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 p-6 bg-white border border-[#E6E0D5]/50 rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300 group">
               <img
-                src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&h=300&q=80"
-                alt="Ritika Sharma"
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&h=300&q=80"
+                alt="Suresh Patel"
                 className="w-20 h-20 rounded-full object-cover flex-shrink-0 border border-[#E6E0D5]/50 shadow-sm animate-fade-in"
               />
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-[#111827] leading-tight">Ritika Sharma</h3>
+                <h3 className="text-base font-bold text-[#111827] leading-tight">Suresh Patel</h3>
                 <p className="text-[10px] font-semibold text-[#F97316] uppercase tracking-wider mt-1">
                   Editorial Director
                 </p>
@@ -364,12 +364,12 @@ const About: React.FC = () => {
             {/* Member 2 */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 p-6 bg-white border border-[#E6E0D5]/50 rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300 group">
               <img
-                src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&h=300&q=80"
-                alt="Arjun Mehta"
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&h=300&q=80"
+                alt="Ananya Roy"
                 className="w-20 h-20 rounded-full object-cover flex-shrink-0 border border-[#E6E0D5]/50 shadow-sm animate-fade-in"
               />
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-[#111827] leading-tight">Arjun Mehta</h3>
+                <h3 className="text-base font-bold text-[#111827] leading-tight">Ananya Roy</h3>
                 <p className="text-[10px] font-semibold text-[#F97316] uppercase tracking-wider mt-1">
                   Creative Design Lead
                 </p>
@@ -387,12 +387,12 @@ const About: React.FC = () => {
             {/* Member 3 */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 p-6 bg-white border border-[#E6E0D5]/50 rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300 group">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&h=300&q=80"
-                alt="Neha Verma"
+                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&h=300&q=80"
+                alt="Vikram Singh"
                 className="w-20 h-20 rounded-full object-cover flex-shrink-0 border border-[#E6E0D5]/50 shadow-sm animate-fade-in"
               />
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-[#111827] leading-tight">Neha Verma</h3>
+                <h3 className="text-base font-bold text-[#111827] leading-tight">Vikram Singh</h3>
                 <p className="text-[10px] font-semibold text-[#F97316] uppercase tracking-wider mt-1">
                   Publishing Consultant
                 </p>
