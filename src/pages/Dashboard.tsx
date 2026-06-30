@@ -72,53 +72,7 @@ export const Dashboard: React.FC = () => {
         return;
       }
 
-      // Seed mock data if database is empty
-      if (authorsData && authorsData.length === 0) {
-        console.log("Seeding initial mock data to Supabase database...");
-        for (const da of DEFAULT_AUTHORS) {
-          await supabase.from('authors').insert({
-            id: da.id,
-            name: da.name,
-            email: da.email,
-            password_hash: da.passwordHash,
-            book_title: da.bookTitle,
-            isbn: da.isbn,
-            mrp: da.mrp,
-            phone_number: da.phoneNumber || '',
-            status: da.status
-          });
 
-          for (const dm of da.months) {
-            const grossVal = dm.copies * da.mrp;
-            const royaltyVal = Math.round(dm.copies * da.mrp * 0.4);
-            const paidVal = dm.name === 'Jun' ? 18600 : (dm.name === 'May' ? 4000 : 0);
-            
-            await supabase.from('monthly_sales').insert({
-              author_id: da.id,
-              month_name: dm.name,
-              copies: dm.copies,
-              gross: grossVal,
-              royalty: royaltyVal,
-              total_copies: dm.copies + 10,
-              paid: paidVal
-            });
-          }
-        }
-
-        for (const dt of DEFAULT_TICKETS) {
-          await supabase.from('support_tickets').insert({
-            id: dt.id,
-            author_email: dt.authorEmail,
-            subject: dt.subject,
-            message: dt.message,
-            status: dt.status
-          });
-        }
-
-        // Re-fetch after seeding
-        const refetched = await supabase.from('authors').select('*, monthly_sales(*)');
-        authorsData = refetched.data;
-      }
 
       if (authorsData) {
         const mapped = authorsData.map((a: any) => {
