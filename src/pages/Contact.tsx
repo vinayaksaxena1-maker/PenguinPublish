@@ -107,7 +107,7 @@ const Contact: React.FC = () => {
             <div>
               <div className="relative w-full h-[280px] sm:h-[380px] lg:h-[480px] rounded-2xl overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.04)] border border-[#E6E0D5]/50">
                 <img
-                  src={cont1}
+                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"
                   alt="Premium publishing consultation workspace"
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                 />
@@ -280,7 +280,7 @@ const Contact: React.FC = () => {
             <div className="flex items-center">
               <div className="relative w-full h-[280px] sm:h-[380px] lg:h-full min-h-[350px] rounded-2xl overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.04)] border border-[#E6E0D5]/50">
                 <img
-                  src={cont2}
+                  src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80"
                   alt="MB Publisher consultation meeting"
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                 />
@@ -436,12 +436,12 @@ const Contact: React.FC = () => {
             {/* Google Map iframe */}
             <div className="lg:col-span-7 h-[420px] rounded-[20px] overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.03)] border border-[#E6E0D5]/50">
               <iframe
-                title="Google Maps Location: Connaught Place, New Delhi"
+                title="Google Maps Location: Pandav Nagar, New Delhi"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 loading="lazy"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3501.996766487847!2d77.2183!3d28.6299!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd37b6c50d31%3A0xe2b4cf3ef2b8df1b!2sConnaught%20Place%2C%20New%20Delhi%2C%20Delhi%20110001!5e0!3m2!1sen!2sin!4v1680000000000!5m2!1sen!2sin"
+                src="https://maps.google.com/maps?q=Pandav%20Nagar,%20near%20Ramleela%20C-Park,%20New%20Delhi,%20Delhi,%20India&t=&z=15&ie=UTF8&iwloc=&output=embed"
               />
             </div>
             
@@ -460,25 +460,25 @@ const Contact: React.FC = () => {
               <div className="flex items-start gap-4">
                 <MapPin className="w-5 h-5 text-[#F97316] flex-shrink-0 mt-1" />
                 <p className="text-xs sm:text-sm text-[#665E58] leading-relaxed">
-                  123 Publishing House<br />
-                  Connaught Place<br />
-                  New Delhi - 110001
+                  D-16 Pandav Nagar<br />
+                  near Ramleela C-Park<br />
+                  New Delhi - 110092
                 </p>
               </div>
               
               {/* Info Row 2 */}
               <div className="flex items-start gap-4">
                 <Phone className="w-5 h-5 text-[#F97316] flex-shrink-0 mt-0.5" />
-                <a href="tel:+919876543210" className="text-xs sm:text-sm text-[#665E58] hover:text-[#F97316] transition-colors">
-                  +91 98765 43210
+                <a href="tel:+918882942631" className="text-xs sm:text-sm text-[#665E58] hover:text-[#F97316] transition-colors">
+                  +91 88829 42631
                 </a>
               </div>
               
               {/* Info Row 3 */}
               <div className="flex items-start gap-4">
                 <Mail className="w-5 h-5 text-[#F97316] flex-shrink-0 mt-0.5" />
-                <a href="mailto:info@mbpublisher.com" className="text-xs sm:text-sm text-[#665E58] hover:text-[#F97316] transition-colors truncate">
-                  info@mbpublisher.com
+                <a href="mailto:mukundabookpublishers@gmail.com" className="text-xs sm:text-sm text-[#665E58] hover:text-[#F97316] transition-colors truncate">
+                  mukundabookpublishers@gmail.com
                 </a>
               </div>
               
