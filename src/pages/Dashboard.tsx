@@ -95,7 +95,8 @@ export const Dashboard: React.FC = () => {
             paid: Number(m.paid),
             bookTitle: a.book_title,
             mrp: Number(a.mrp),
-            isbn: a.isbn
+            isbn: a.isbn,
+            source: m.source || 'Amazon'
           }));
 
           // Sort months chronologically
@@ -180,6 +181,7 @@ export const Dashboard: React.FC = () => {
   const [payUpdateAuthorId, setPayUpdateAuthorId] = useState('')
   const [payUpdateCopies, setPayUpdateCopies] = useState('')
   const [payUpdatePaid, setPayUpdatePaid] = useState('')
+  const [payUpdateSource, setPayUpdateSource] = useState<'Amazon' | 'Flipkart'>('Amazon')
   
   // Admin "Payments Report" filter
   const [paymentFilterAuthorId, setPaymentFilterAuthorId] = useState('all')
@@ -367,6 +369,7 @@ export const Dashboard: React.FC = () => {
       .from('monthly_sales')
       .select('id')
       .eq('author_id', targetId)
+      .eq('source', payUpdateSource)
       .order('month_name', { ascending: false })
       .limit(1)
 
@@ -1077,6 +1080,13 @@ export const Dashboard: React.FC = () => {
                   <label>Total Royalty (₹)</label>
                   <input id="salesRoyalty" type="number" min="0" placeholder="e.g. 1520" required />
                 </div>
+                <div className="field">
+                  <label>Sales Channel</label>
+                  <select id="salesSource">
+                    <option value="Amazon">Amazon</option>
+                    <option value="Flipkart">Flipkart</option>
+                  </select>
+                </div>
               </div>
               <button
                 className="btn btn-primary"
@@ -1089,6 +1099,7 @@ export const Dashboard: React.FC = () => {
                   const dateInput = document.getElementById('salesDate') as HTMLInputElement
                   const totalCopiesInput = document.getElementById('salesTotalCopies') as HTMLInputElement
                   const royaltyInput = document.getElementById('salesRoyalty') as HTMLInputElement
+                  const sourceSelect = document.getElementById('salesSource') as HTMLSelectElement
                   
                   const targetId = authorSelect.value
                   const bookTitleVal = bookTitleInput.value.trim()
@@ -1097,6 +1108,7 @@ export const Dashboard: React.FC = () => {
                   const dateVal = dateInput.value
                   const totalCopiesVal = Math.max(0, parseInt(totalCopiesInput.value) || 0)
                   const royaltyVal = Math.max(0, parseFloat(royaltyInput.value) || 0)
+                  const sourceVal = sourceSelect.value
 
                   if (!bookTitleVal) {
                     showToast('Please enter a book name!')
@@ -1129,7 +1141,8 @@ export const Dashboard: React.FC = () => {
                         gross: 0,
                         royalty: royaltyVal,
                         total_copies: totalCopiesVal,
-                        paid: 0
+                        paid: 0,
+                        source: sourceVal
                       });
 
                     const { error: authorErr } = await supabase
@@ -1180,21 +1193,35 @@ export const Dashboard: React.FC = () => {
                 </select>
               </div>
 
+              <div className="field" style={{ marginTop: '12px' }}>
+                <label>Select Platform</label>
+                <select 
+                  value={payUpdateSource} 
+                  onChange={(e) => setPayUpdateSource(e.target.value as any)}
+                >
+                  <option value="Amazon">Amazon</option>
+                  <option value="Flipkart">Flipkart</option>
+                </select>
+              </div>
+
               {(() => {
                 const targetAuthorId = payUpdateAuthorId || (authors[0]?.id || '')
                 const targetAuthor = authors.find(a => a.id === targetAuthorId)
                 if (!targetAuthor) return null
 
-                if (targetAuthor.months.length === 0) {
+                // Filter months by the selected source platform
+                const filteredMonths = targetAuthor.months.filter(m => m.source === payUpdateSource)
+
+                if (filteredMonths.length === 0) {
                   return (
                     <div style={{ background: 'var(--soft)', padding: '16px', borderRadius: '16px', fontSize: '13px', margin: '14px 0', border: '1px dotted var(--line)', textAlign: 'center', color: 'var(--muted)' }}>
-                      No book entries logged yet. Please add a monthly sales entry first.
+                      No book entries logged yet for {payUpdateSource}. Please add a monthly sales entry first.
                     </div>
                   )
                 }
 
                 // Get latest active month info
-                const latestMonth = targetAuthor.months[targetAuthor.months.length - 1]
+                const latestMonth = filteredMonths[filteredMonths.length - 1]
 
                 return (
                   <>
@@ -1296,6 +1323,7 @@ export const Dashboard: React.FC = () => {
                   <tr>
                     <th>Date / Month</th>
                     <th>Book Name</th>
+                    <th>Platform</th>
                     <th>MRP (₹)</th>
                     <th>Total Copies</th>
                     <th>Month Copies Sold</th>
@@ -1307,7 +1335,7 @@ export const Dashboard: React.FC = () => {
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)' }}>
+                      <td colSpan={9} style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)' }}>
                         No monthly sales logged yet.
                       </td>
                     </tr>
@@ -1324,9 +1352,14 @@ export const Dashboard: React.FC = () => {
                       const rowPendingRoyalty = Math.max(0, rowTotalRoyalty - rowPaidRoyalty)
 
                       return (
-                        <tr key={`${a.id}-${m.name}-${idx}`}>
+                        <tr key={`${a.id}-${m.name}-${m.source}-${idx}`}>
                           <td>{formatSaleDate(m.name)}</td>
                           <td>{m.bookTitle || a.bookTitle}</td>
+                          <td>
+                            <span className="status" style={{ fontSize: '11px', padding: '2px 8px', background: m.source === 'Amazon' ? '#10b981' : '#3b82f6', color: '#fff', borderRadius: '4px' }}>
+                              {m.source}
+                            </span>
+                          </td>
                           <td>{money(rowMrp)}</td>
                           <td>{rowTotalCopies}</td>
                           <td>{rowMonthCopiesSold}</td>
@@ -1453,6 +1486,7 @@ export const Dashboard: React.FC = () => {
           <thead>
             <tr>
               <th>Month</th>
+              <th>Platform</th>
               <th>Copies</th>
               <th>Gross Sale</th>
               <th>Printing/Platform Cost (55%)</th>
@@ -1473,6 +1507,11 @@ export const Dashboard: React.FC = () => {
               return (
                 <tr key={idx}>
                   <td>{formatSaleDate(m.name)}</td>
+                  <td>
+                    <span className="status" style={{ fontSize: '11px', padding: '2px 8px', background: m.source === 'Amazon' ? '#10b981' : '#3b82f6', color: '#fff', borderRadius: '4px' }}>
+                      {m.source}
+                    </span>
+                  </td>
                   <td>{m.copies}</td>
                   <td>{money(gross)}</td>
                   <td>{money(ded)}</td>
