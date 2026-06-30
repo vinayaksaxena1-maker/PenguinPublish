@@ -145,23 +145,10 @@ export const Dashboard: React.FC = () => {
   // Login states
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [loginRole, setLoginRole] = useState<'author' | 'admin'>('author')
-  const [loginTab, setLoginTab] = useState<'login' | 'register'>('login')
-  const [loginMethod, setLoginMethod] = useState<'email' | 'otp'>('email')
   
   // Credentials input
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
-  // OTP Login inputs
-  const [mobileNumber, setMobileNumber] = useState('')
-  const [otpSent, setOtpSent] = useState(false)
-  const [otpCode, setOtpCode] = useState('')
-
-  // Register state
-  const [regName, setRegName] = useState('')
-  const [regEmail, setRegEmail] = useState('')
-  const [regPassword, setRegPassword] = useState('')
-  const [regBook, setRegBook] = useState('')
 
   // Active session state
   const [currentAuthor, setCurrentAuthor] = useState<AuthorAccount | null>(null)
@@ -225,115 +212,6 @@ export const Dashboard: React.FC = () => {
       } else {
         showToast('Access Denied: Incorrect Email or Password!')
       }
-    }
-  }
-
-  // Handle Mock Google Login
-  const handleGoogleLogin = () => {
-    if (authors.length === 0) {
-      showToast('No registered authors found in database!')
-      return
-    }
-    showToast('Simulating Google Sign-In pop-up...')
-    setTimeout(() => {
-      const found = authors[0]
-      setIsLoggedIn(true)
-      setCurrentAuthor(found)
-      setPage('overview')
-      showToast(`Google Login Successful: ${found.email}`)
-    }, 1200)
-  }
-
-  // Handle sending mock OTP SMS
-  const handleSendOtp = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!mobileNumber || mobileNumber.length < 10) {
-      showToast('Please enter a valid 10-digit mobile number!')
-      return
-    }
-    setOtpSent(true)
-    showToast(`OTP sent successfully to +91 ${mobileNumber}! (Use demo OTP: 1234)`)
-  }
-
-  // Verify mock OTP SMS
-  const handleVerifyOtp = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (otpCode === '1234') {
-      if (authors.length === 0) {
-        showToast('No registered authors found in database!')
-        return
-      }
-      const found = authors[0]
-      setIsLoggedIn(true)
-      setCurrentAuthor(found)
-      setPage('overview')
-      showToast(`OTP Verified! Welcome back, ${found.name}`)
-      setOtpSent(false)
-      setOtpCode('')
-      setMobileNumber('')
-    } else {
-      showToast('Incorrect OTP! Please enter 1234 for demo.')
-    }
-  }
-
-  // Quick Admin access handler
-  const handleQuickAdmin = () => {
-    setEmail('admin@mbpublication.in')
-    setPassword('123456')
-    setLoginRole('admin')
-    setIsLoggedIn(true)
-    setCurrentAuthor(null)
-    setPage('adminOverview')
-    showToast('Admin Quick Demo Activated!')
-  }
-
-  // Handle Register (New Author)
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!regName || !regEmail || !regPassword) {
-      showToast('All standard fields are required!')
-      return
-    }
-
-    const exists = authors.some(a => a.email.toLowerCase() === regEmail.toLowerCase())
-    if (exists || regEmail.toLowerCase() === 'admin@mbpublication.in') {
-      showToast('Email address already registered!')
-      return
-    }
-
-    const newId = `author-${Date.now()}`
-    const bookTitleVal = regBook || 'अघोषित पुस्तक (TBD)'
-
-    const { error } = await supabase
-      .from('authors')
-      .insert({
-        id: newId,
-        name: regName,
-        email: regEmail,
-        password_hash: regPassword,
-        book_title: bookTitleVal,
-        isbn: '978-93-00000-XX-X',
-        mrp: 250,
-        phone_number: '',
-        status: 'Active'
-      })
-
-    if (!error) {
-      await loadData()
-      showToast('Registration successful! Please login now.')
-      setLoginTab('login')
-      setLoginRole('author')
-      setLoginMethod('email')
-      setEmail(regEmail)
-      setPassword(regPassword)
-
-      setRegName('')
-      setRegEmail('')
-      setRegPassword('')
-      setRegBook('')
-    } else {
-      showToast(`Registration failed: ${error.message}`)
     }
   }
 
