@@ -59,10 +59,20 @@ const DEFAULT_TICKETS: SupportTicket[] = []
 export const Dashboard: React.FC = () => {
   const [authors, setAuthors] = useState<AuthorAccount[]>([])
   const [tickets, setTickets] = useState<SupportTicket[]>([])
+  const [admins, setAdmins] = useState<{ id: string; name: string; email: string; passwordHash: string; }[]>([])
 
   // Load and seed database helper
   const loadData = async () => {
     try {
+      const { data: adminsData } = await supabase.from('admins').select('*');
+      if (adminsData) {
+        setAdmins(adminsData.map((ad: any) => ({
+          id: ad.id,
+          name: ad.name,
+          email: ad.email,
+          passwordHash: ad.password_hash
+        })));
+      }
       let { data: authorsData, error: authorsErr } = await supabase
         .from('authors')
         .select('*, monthly_sales(*)');
@@ -164,6 +174,7 @@ export const Dashboard: React.FC = () => {
   const [adminNewEmail, setAdminNewEmail] = useState('')
   const [adminNewPassword, setAdminNewPassword] = useState('')
   const [adminNewPhone, setAdminNewPhone] = useState('')
+  const [adminNewRole, setAdminNewRole] = useState<'author' | 'admin'>('author')
 
   // Admin "Payment Update" state inputs
   const [payUpdateAuthorId, setPayUpdateAuthorId] = useState('')
@@ -191,7 +202,12 @@ export const Dashboard: React.FC = () => {
     e.preventDefault()
 
     if (loginRole === 'admin') {
-      if (email === 'admin@mbpublication.in' && password === '123456') {
+      const isSuperAdmin = email === 'admin@mbpublication.in' && password === '123456'
+      const customAdmin = admins.find(
+        ad => ad.email.toLowerCase() === email.toLowerCase() && ad.passwordHash === password
+      )
+
+      if (isSuperAdmin || customAdmin) {
         setIsLoggedIn(true)
         setCurrentAuthor(null)
         setPage('adminOverview')
@@ -225,42 +241,67 @@ export const Dashboard: React.FC = () => {
   const handleAdminAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!adminNewName || !adminNewEmail || !adminNewPassword || !adminNewPhone) {
-      showToast('Please fill out all fields!')
+    if (!adminNewName || !adminNewEmail || !adminNewPassword || (adminNewRole === 'author' && !adminNewPhone)) {
+      showToast('Please fill out all required fields!')
       return
     }
 
-    const exists = authors.some(a => a.email.toLowerCase() === adminNewEmail.toLowerCase())
-    if (exists || adminNewEmail.toLowerCase() === 'admin@mbpublication.in') {
+    const existsAuthor = authors.some(a => a.email.toLowerCase() === adminNewEmail.toLowerCase())
+    const existsAdmin = admins.some(ad => ad.email.toLowerCase() === adminNewEmail.toLowerCase())
+    if (existsAuthor || existsAdmin || adminNewEmail.toLowerCase() === 'admin@mbpublication.in') {
       showToast('Error: Email address already registered!')
       return
     }
 
-    const newId = `author-${Date.now()}`
-    const { error } = await supabase
-      .from('authors')
-      .insert({
-        id: newId,
-        name: adminNewName,
-        email: adminNewEmail,
-        password_hash: adminNewPassword,
-        book_title: 'अघोषित पुस्तक (TBD)',
-        isbn: '978-93-00000-XX-X',
-        mrp: 250,
-        phone_number: adminNewPhone,
-        status: 'Active'
-      })
+    if (adminNewRole === 'admin') {
+      const newId = `admin-${Date.now()}`
+      const { error } = await supabase
+        .from('admins')
+        .insert({
+          id: newId,
+          name: adminNewName,
+          email: adminNewEmail,
+          password_hash: adminNewPassword
+        })
 
-    if (!error) {
-      await loadData()
-      showToast(`Author "${adminNewName}" added successfully!`)
+      if (!error) {
+        await loadData()
+        showToast(`Admin "${adminNewName}" added successfully!`)
 
-      setAdminNewName('')
-      setAdminNewEmail('')
-      setAdminNewPassword('')
-      setAdminNewPhone('')
+        setAdminNewName('')
+        setAdminNewEmail('')
+        setAdminNewPassword('')
+        setAdminNewPhone('')
+      } else {
+        showToast(`Error: ${error.message}`)
+      }
     } else {
-      showToast(`Error: ${error.message}`)
+      const newId = `author-${Date.now()}`
+      const { error } = await supabase
+        .from('authors')
+        .insert({
+          id: newId,
+          name: adminNewName,
+          email: adminNewEmail,
+          password_hash: adminNewPassword,
+          book_title: 'अघोषित पुस्तक (TBD)',
+          isbn: '978-93-00000-XX-X',
+          mrp: 250,
+          phone_number: adminNewPhone,
+          status: 'Active'
+        })
+
+      if (!error) {
+        await loadData()
+        showToast(`Author "${adminNewName}" added successfully!`)
+
+        setAdminNewName('')
+        setAdminNewEmail('')
+        setAdminNewPassword('')
+        setAdminNewPhone('')
+      } else {
+        showToast(`Error: ${error.message}`)
+      }
     }
   }
 
@@ -280,6 +321,26 @@ export const Dashboard: React.FC = () => {
         showToast(`Author "${authorToDelete.name}" deleted successfully!`)
       } else {
         showToast(`Error deleting author: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Delete custom admin
+  const handleAdminDeleteAdmin = async (adminId: string) => {
+    const adminToDelete = admins.find(ad => ad.id === adminId)
+    if (!adminToDelete) return
+
+    if (window.confirm(`Are you sure you want to delete Admin "${adminToDelete.name}"?`)) {
+      const { error } = await supabase
+        .from('admins')
+        .delete()
+        .eq('id', adminId)
+
+      if (!error) {
+        await loadData()
+        showToast(`Admin "${adminToDelete.name}" deleted successfully!`)
+      } else {
+        showToast(`Error deleting admin: ${error.message}`)
       }
     }
   }
@@ -797,16 +858,58 @@ export const Dashboard: React.FC = () => {
                   <tr>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Password</th>
                     <th>Phone</th>
+                    <th>Role</th>
                     <th style={{ textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {/* 1. Superadmin Row */}
+                  <tr>
+                    <td><b>MB Publication Admin</b></td>
+                    <td>admin@mbpublication.in</td>
+                    <td><code style={{ background: 'var(--soft)', padding: '2px 6px', borderRadius: '4px' }}>123456</code></td>
+                    <td>N/A</td>
+                    <td><span className="status paid" style={{ fontSize: '11px', padding: '2px 8px' }}>Super Admin</span></td>
+                    <td style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '11px' }}>Protected</td>
+                  </tr>
+
+                  {/* 2. Custom Admins Rows */}
+                  {admins.map((ad) => (
+                    <tr key={ad.id}>
+                      <td><b>{ad.name}</b></td>
+                      <td>{ad.email}</td>
+                      <td><code style={{ background: 'var(--soft)', padding: '2px 6px', borderRadius: '4px' }}>{ad.passwordHash}</code></td>
+                      <td>N/A</td>
+                      <td><span className="status pending" style={{ fontSize: '11px', padding: '2px 8px', background: '#3b82f6', color: '#fff' }}>Admin</span></td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button 
+                          className="btn" 
+                          style={{ 
+                            background: '#ef4444', 
+                            color: '#fff', 
+                            padding: '6px 12px', 
+                            fontSize: '11px', 
+                            borderRadius: '6px',
+                            fontWeight: 'bold'
+                          }}
+                          onClick={() => handleAdminDeleteAdmin(ad.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* 3. Authors Rows */}
                   {authors.map((a) => (
                     <tr key={a.id}>
                       <td><b>{a.name}</b></td>
                       <td>{a.email}</td>
+                      <td><code style={{ background: 'var(--soft)', padding: '2px 6px', borderRadius: '4px' }}>{a.passwordHash}</code></td>
                       <td>{a.phoneNumber || 'N/A'}</td>
+                      <td><span className="status draft" style={{ fontSize: '11px', padding: '2px 8px' }}>Author</span></td>
                       <td style={{ textAlign: 'center' }}>
                         <button 
                           className="btn" 
@@ -875,12 +978,19 @@ export const Dashboard: React.FC = () => {
             {/* Add New User Card */}
             <div className="card">
               <div className="section-title">
-                <h3>Add New User (Author)</h3>
+                <h3>Add New User / Admin</h3>
               </div>
               <form onSubmit={handleAdminAddUser}>
                 <div className="form-grid">
                   <div className="field">
-                    <label>Author Name</label>
+                    <label>User Role</label>
+                    <select value={adminNewRole} onChange={(e) => setAdminNewRole(e.target.value as any)}>
+                      <option value="author">Author (User)</option>
+                      <option value="admin">Administrator (Admin)</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>{adminNewRole === 'author' ? 'Author Name' : 'Admin Name'}</label>
                     <input 
                       type="text" 
                       value={adminNewName} 
@@ -1077,50 +1187,60 @@ export const Dashboard: React.FC = () => {
                 const targetAuthor = authors.find(a => a.id === targetAuthorId)
                 if (!targetAuthor) return null
 
+                if (targetAuthor.months.length === 0) {
+                  return (
+                    <div style={{ background: 'var(--soft)', padding: '16px', borderRadius: '16px', fontSize: '13px', margin: '14px 0', border: '1px dotted var(--line)', textAlign: 'center', color: 'var(--muted)' }}>
+                      No book entries logged yet. Please add a monthly sales entry first.
+                    </div>
+                  )
+                }
+
                 // Get latest active month info
                 const latestMonth = targetAuthor.months[targetAuthor.months.length - 1]
 
                 return (
-                  <div style={{ background: 'var(--soft)', padding: '14px', borderRadius: '14px', fontSize: '13px', margin: '14px 0', border: '1px solid var(--line)', lineHeight: '1.6' }}>
-                    <p><b>Author:</b> {targetAuthor.name}</p>
-                    <p><b>MRP:</b> ₹{targetAuthor.mrp}</p>
-                    <p><b>ISBN:</b> {targetAuthor.isbn}</p>
-                    <p><b>Month:</b> {latestMonth?.name || 'N/A'}</p>
-                    <p><b>Total Copies (Printed):</b> {latestMonth?.totalCopies || 0}</p>
-                    <p><b>Month Copies Sold:</b> {latestMonth?.copies || 0}</p>
-                    <p><b>Total Royalty:</b> {money(latestMonth?.royalty || 0)}</p>
-                    <p><b>Paid Royalty:</b> {money(latestMonth?.paid || 0)}</p>
-                  </div>
+                  <>
+                    <div style={{ background: 'var(--soft)', padding: '14px', borderRadius: '14px', fontSize: '13px', margin: '14px 0', border: '1px solid var(--line)', lineHeight: '1.6' }}>
+                      <p><b>Author:</b> {targetAuthor.name}</p>
+                      <p><b>MRP:</b> ₹{targetAuthor.mrp}</p>
+                      <p><b>ISBN:</b> {targetAuthor.isbn}</p>
+                      <p><b>Month:</b> {latestMonth?.name || 'N/A'}</p>
+                      <p><b>Total Copies (Printed):</b> {latestMonth?.totalCopies || 0}</p>
+                      <p><b>Month Copies Sold:</b> {latestMonth?.copies || 0}</p>
+                      <p><b>Total Royalty:</b> {money(latestMonth?.royalty || 0)}</p>
+                      <p><b>Paid Royalty:</b> {money(latestMonth?.paid || 0)}</p>
+                    </div>
+
+                    <form onSubmit={handlePaymentUpdateSubmit}>
+                      <div className="form-grid">
+                        <div className="field">
+                          <label>Month Copies Sold</label>
+                          <input 
+                            type="number" 
+                            min="0"
+                            value={payUpdateCopies} 
+                            onChange={(e) => setPayUpdateCopies(e.target.value.replace(/[^0-9]/g, ''))} 
+                            placeholder="e.g. 7" 
+                            required 
+                          />
+                        </div>
+                        <div className="field">
+                          <label>Paid Royalty (₹)</label>
+                          <input 
+                            type="number" 
+                            min="0"
+                            value={payUpdatePaid} 
+                            onChange={(e) => setPayUpdatePaid(e.target.value.replace(/[^0-9.]/g, ''))} 
+                            placeholder="e.g. 1400" 
+                            required 
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>Update Payment</button>
+                    </form>
+                  </>
                 )
               })()}
-
-              <form onSubmit={handlePaymentUpdateSubmit}>
-                <div className="form-grid">
-                  <div className="field">
-                    <label>Month Copies Sold</label>
-                    <input 
-                      type="number" 
-                      min="0"
-                      value={payUpdateCopies} 
-                      onChange={(e) => setPayUpdateCopies(e.target.value.replace(/[^0-9]/g, ''))} 
-                      placeholder="e.g. 7" 
-                      required 
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Paid Royalty (₹)</label>
-                    <input 
-                      type="number" 
-                      min="0"
-                      value={payUpdatePaid} 
-                      onChange={(e) => setPayUpdatePaid(e.target.value.replace(/[^0-9.]/g, ''))} 
-                      placeholder="e.g. 1400" 
-                      required 
-                    />
-                  </div>
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>Update Payment</button>
-              </form>
             </div>
           </div>
         )
@@ -1386,15 +1506,6 @@ export const Dashboard: React.FC = () => {
                 <span>MB Publishers</span>
               </div>
               <h1>Author Portal</h1>
-              <p>
-                लॉगिन करके अपनी बुक्स, सेल्स और रॉयल्टी रिपोर्ट्स देखें।
-              </p>
-              <div className="feature-grid">
-                <div className="feature">✓ Private Login Accounts</div>
-                <div className="feature">✓ Sales and Royalty Tracking</div>
-                <div className="feature">✓ Official Document Access</div>
-                <div className="feature">✓ Real-time Support Queries</div>
-              </div>
             </div>
             
             <div className="form-side">
