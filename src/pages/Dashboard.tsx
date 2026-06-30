@@ -1615,20 +1615,7 @@ export const Dashboard: React.FC = () => {
               ))}
             </nav>
             <div className="side-footer">
-              Demo portal only.<br />Real database configuration integrates database server API layers.
-              <button 
-                className="btn btn-soft" 
-                style={{ marginTop: '8px', padding: '4px 8px', fontSize: '11px', width: '100%', border: '1px dashed var(--line)' }}
-                onClick={() => {
-                  if (window.confirm('Reset local database to default mock values? All current entries will be lost.')) {
-                    localStorage.removeItem('mb_authors')
-                    localStorage.removeItem('mb_tickets')
-                    window.location.reload()
-                  }
-                }}
-              >
-                Reset Demo Data
-              </button>
+              © 2025 MB Publishers.<br />All Rights Reserved.
             </div>
           </aside>
           
@@ -1669,7 +1656,8 @@ export const Dashboard: React.FC = () => {
   function handleRoleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const selectedRole = e.target.value as 'author' | 'admin'
     setLoginRole(selectedRole)
-    setEmail(selectedRole === 'admin' ? 'admin@mbpublication.in' : 'author@mbpublication.in')
+    setEmail('')
+    setPassword('')
   }
 }
 
