@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import './Dashboard.css'
 import logoImg from '../assets/Logo1.png'
+import { supabase } from '../lib/supabaseClient'
 
 const formatSaleDate = (dateStr: string) => {
   if (!dateStr) return 'N/A';
@@ -22,6 +23,8 @@ interface MonthSales {
   bookTitle?: string;
   mrp?: number;
   isbn?: string;
+  totalCopies?: number;
+  paid?: number;
 }
 
 interface AuthorAccount {
@@ -46,7 +49,7 @@ interface SupportTicket {
   authorEmail: string;
   subject: string;
   message: string;
-  status: 'Resolved' | 'In Progress' | 'Pending';
+  status: 'Resolved' | 'In Progress' | 'Pending' | 'Read';
 }
 
 const DEFAULT_AUTHORS: AuthorAccount[] = [
@@ -102,31 +105,136 @@ const DEFAULT_TICKETS: SupportTicket[] = [
 ]
 
 export const Dashboard: React.FC = () => {
-  // Load mock database from localStorage
-  const [authors, setAuthors] = useState<AuthorAccount[]>(() => {
-    const saved = localStorage.getItem('mb_authors')
-    if (saved) {
-      try { return JSON.parse(saved) } catch (e) { /* fallback */ }
+  const [authors, setAuthors] = useState<AuthorAccount[]>([])
+  const [tickets, setTickets] = useState<SupportTicket[]>([])
+
+  // Load and seed database helper
+  const loadData = async () => {
+    try {
+      let { data: authorsData, error: authorsErr } = await supabase
+        .from('authors')
+        .select('*, monthly_sales(*)');
+
+      if (authorsErr) {
+        console.error("Error fetching authors:", authorsErr.message);
+        return;
+      }
+
+      // Seed mock data if database is empty
+      if (authorsData && authorsData.length === 0) {
+        console.log("Seeding initial mock data to Supabase database...");
+        for (const da of DEFAULT_AUTHORS) {
+          await supabase.from('authors').insert({
+            id: da.id,
+            name: da.name,
+            email: da.email,
+            password_hash: da.passwordHash,
+            book_title: da.bookTitle,
+            isbn: da.isbn,
+            mrp: da.mrp,
+            phone_number: da.phoneNumber || '',
+            status: da.status
+          });
+
+          for (const dm of da.months) {
+            const grossVal = dm.copies * da.mrp;
+            const royaltyVal = Math.round(dm.copies * da.mrp * 0.4);
+            const paidVal = dm.name === 'Jun' ? 18600 : (dm.name === 'May' ? 4000 : 0);
+            
+            await supabase.from('monthly_sales').insert({
+              author_id: da.id,
+              month_name: dm.name,
+              copies: dm.copies,
+              gross: grossVal,
+              royalty: royaltyVal,
+              total_copies: dm.copies + 10,
+              paid: paidVal
+            });
+          }
+        }
+
+        for (const dt of DEFAULT_TICKETS) {
+          await supabase.from('support_tickets').insert({
+            id: dt.id,
+            author_email: dt.authorEmail,
+            subject: dt.subject,
+            message: dt.message,
+            status: dt.status
+          });
+        }
+
+        // Re-fetch after seeding
+        const refetched = await supabase.from('authors').select('*, monthly_sales(*)');
+        authorsData = refetched.data;
+      }
+
+      if (authorsData) {
+        const mapped = authorsData.map((a: any) => {
+          const months = (a.monthly_sales || []).map((m: any) => ({
+            name: m.month_name,
+            copies: m.copies,
+            gross: Number(m.gross),
+            royalty: Number(m.royalty),
+            totalCopies: m.total_copies,
+            paid: Number(m.paid),
+            bookTitle: a.book_title,
+            mrp: Number(a.mrp),
+            isbn: a.isbn
+          }));
+
+          // Sort months chronologically
+          months.sort((m1: any, m2: any) => {
+            const d1 = new Date(m1.name).getTime();
+            const d2 = new Date(m2.name).getTime();
+            return d1 - d2;
+          });
+
+          const sold = months.reduce((acc: number, curr: any) => acc + curr.copies, 0);
+          const royalty = months.reduce((acc: number, curr: any) => acc + (curr.royalty || 0), 0);
+          const paid = months.reduce((acc: number, curr: any) => acc + (curr.paid || 0), 0);
+          const pending = Math.max(0, royalty - paid);
+
+          return {
+            id: a.id,
+            name: a.name,
+            email: a.email,
+            passwordHash: a.password_hash,
+            bookTitle: a.book_title,
+            isbn: a.isbn,
+            mrp: Number(a.mrp),
+            sold,
+            royalty,
+            paid,
+            pending,
+            months,
+            status: a.status,
+            phoneNumber: a.phone_number
+          };
+        });
+        setAuthors(mapped);
+      }
+
+      const { data: ticketsData } = await supabase
+        .from('support_tickets')
+        .select('*');
+
+      if (ticketsData) {
+        setTickets(ticketsData.map((t: any) => ({
+          id: t.id,
+          authorEmail: t.author_email,
+          subject: t.subject,
+          message: t.message,
+          status: t.status
+        })));
+      }
+    } catch (e: any) {
+      console.error("Load Database Error:", e.message);
     }
-    return DEFAULT_AUTHORS
-  })
-
-  const [tickets, setTickets] = useState<SupportTicket[]>(() => {
-    const saved = localStorage.getItem('mb_tickets')
-    if (saved) {
-      try { return JSON.parse(saved) } catch (e) { /* fallback */ }
-    }
-    return DEFAULT_TICKETS
-  })
-
-  // Synchronize with localStorage
-  useEffect(() => {
-    localStorage.setItem('mb_authors', JSON.stringify(authors))
-  }, [authors])
+  };
 
   useEffect(() => {
-    localStorage.setItem('mb_tickets', JSON.stringify(tickets))
-  }, [tickets])
+    loadData();
+  }, []);
 
   // Login states
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -135,8 +243,8 @@ export const Dashboard: React.FC = () => {
   const [loginMethod, setLoginMethod] = useState<'email' | 'otp'>('email')
   
   // Credentials input
-  const [email, setEmail] = useState('author@mbpublication.in')
-  const [password, setPassword] = useState('123456')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   // OTP Login inputs
   const [mobileNumber, setMobileNumber] = useState('')
@@ -199,7 +307,7 @@ export const Dashboard: React.FC = () => {
         showToast('Invalid Admin Credentials!')
       }
     } else {
-      // Author login verification
+      // Author login verification against dynamically loaded authors
       const found = authors.find(
         a => a.email.toLowerCase() === email.toLowerCase() && a.passwordHash === password
       )
@@ -216,6 +324,10 @@ export const Dashboard: React.FC = () => {
 
   // Handle Mock Google Login
   const handleGoogleLogin = () => {
+    if (authors.length === 0) {
+      showToast('No registered authors found in database!')
+      return
+    }
     showToast('Simulating Google Sign-In pop-up...')
     setTimeout(() => {
       const found = authors[0]
@@ -241,6 +353,10 @@ export const Dashboard: React.FC = () => {
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault()
     if (otpCode === '1234') {
+      if (authors.length === 0) {
+        showToast('No registered authors found in database!')
+        return
+      }
       const found = authors[0]
       setIsLoggedIn(true)
       setCurrentAuthor(found)
@@ -266,7 +382,7 @@ export const Dashboard: React.FC = () => {
   }
 
   // Handle Register (New Author)
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!regName || !regEmail || !regPassword) {
@@ -280,41 +396,39 @@ export const Dashboard: React.FC = () => {
       return
     }
 
-    const newAuthor: AuthorAccount = {
-      id: `author-${Date.now()}`,
-      name: regName,
-      email: regEmail,
-      passwordHash: regPassword,
-      bookTitle: regBook || 'अघोषित पुस्तक (TBD)',
-      isbn: '978-93-00000-XX-X',
-      mrp: 250,
-      sold: 0,
-      royalty: 0,
-      paid: 0,
-      pending: 0,
-      months: [
-        { name: 'Jan', copies: 0, gross: 0 },
-        { name: 'Feb', copies: 0, gross: 0 },
-        { name: 'Mar', copies: 0, gross: 0 },
-        { name: 'Apr', copies: 0, gross: 0 },
-        { name: 'May', copies: 0, gross: 0 },
-        { name: 'Jun', copies: 0, gross: 0 }
-      ],
-      status: 'Active'
+    const newId = `author-${Date.now()}`
+    const bookTitleVal = regBook || 'अघोषित पुस्तक (TBD)'
+
+    const { error } = await supabase
+      .from('authors')
+      .insert({
+        id: newId,
+        name: regName,
+        email: regEmail,
+        password_hash: regPassword,
+        book_title: bookTitleVal,
+        isbn: '978-93-00000-XX-X',
+        mrp: 250,
+        phone_number: '',
+        status: 'Active'
+      })
+
+    if (!error) {
+      await loadData()
+      showToast('Registration successful! Please login now.')
+      setLoginTab('login')
+      setLoginRole('author')
+      setLoginMethod('email')
+      setEmail(regEmail)
+      setPassword(regPassword)
+
+      setRegName('')
+      setRegEmail('')
+      setRegPassword('')
+      setRegBook('')
+    } else {
+      showToast(`Registration failed: ${error.message}`)
     }
-
-    setAuthors(prev => [...prev, newAuthor])
-    showToast('Registration successful! Please login now.')
-    setLoginTab('login')
-    setLoginRole('author')
-    setLoginMethod('email')
-    setEmail(regEmail)
-    setPassword(regPassword)
-
-    setRegName('')
-    setRegEmail('')
-    setRegPassword('')
-    setRegBook('')
   }
 
   const handleLogout = () => {
@@ -324,7 +438,7 @@ export const Dashboard: React.FC = () => {
   }
 
   // Admin: Add new user/author
-  const handleAdminAddUser = (e: React.FormEvent) => {
+  const handleAdminAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!adminNewName || !adminNewEmail || !adminNewPassword || !adminNewPhone) {
@@ -338,53 +452,56 @@ export const Dashboard: React.FC = () => {
       return
     }
 
-    const newAuthor: AuthorAccount = {
-      id: `author-${Date.now()}`,
-      name: adminNewName,
-      email: adminNewEmail,
-      passwordHash: adminNewPassword,
-      phoneNumber: adminNewPhone,
-      bookTitle: 'अघोषित पुस्तक (TBD)',
-      isbn: '978-93-00000-XX-X',
-      mrp: 250,
-      sold: 0,
-      royalty: 0,
-      paid: 0,
-      pending: 0,
-      months: [
-        { name: 'Jan', copies: 0, gross: 0 },
-        { name: 'Feb', copies: 0, gross: 0 },
-        { name: 'Mar', copies: 0, gross: 0 },
-        { name: 'Apr', copies: 0, gross: 0 },
-        { name: 'May', copies: 0, gross: 0 },
-        { name: 'Jun', copies: 0, gross: 0 }
-      ],
-      status: 'Active'
+    const newId = `author-${Date.now()}`
+    const { error } = await supabase
+      .from('authors')
+      .insert({
+        id: newId,
+        name: adminNewName,
+        email: adminNewEmail,
+        password_hash: adminNewPassword,
+        book_title: 'अघोषित पुस्तक (TBD)',
+        isbn: '978-93-00000-XX-X',
+        mrp: 250,
+        phone_number: adminNewPhone,
+        status: 'Active'
+      })
+
+    if (!error) {
+      await loadData()
+      showToast(`Author "${adminNewName}" added successfully!`)
+
+      setAdminNewName('')
+      setAdminNewEmail('')
+      setAdminNewPassword('')
+      setAdminNewPhone('')
+    } else {
+      showToast(`Error: ${error.message}`)
     }
-
-    setAuthors(prev => [...prev, newAuthor])
-    showToast(`Author "${adminNewName}" added successfully!`)
-
-    // Clear fields
-    setAdminNewName('')
-    setAdminNewEmail('')
-    setAdminNewPassword('')
-    setAdminNewPhone('')
   }
 
   // Admin: Delete user/author
-  const handleAdminDeleteUser = (authorId: string) => {
+  const handleAdminDeleteUser = async (authorId: string) => {
     const authorToDelete = authors.find(a => a.id === authorId)
     if (!authorToDelete) return
 
     if (window.confirm(`Are you sure you want to delete author "${authorToDelete.name}"?`)) {
-      setAuthors(prev => prev.filter(a => a.id !== authorId))
-      showToast(`Author "${authorToDelete.name}" deleted successfully!`)
+      const { error } = await supabase
+        .from('authors')
+        .delete()
+        .eq('id', authorId)
+
+      if (!error) {
+        await loadData()
+        showToast(`Author "${authorToDelete.name}" deleted successfully!`)
+      } else {
+        showToast(`Error deleting author: ${error.message}`)
+      }
     }
   }
 
   // Admin: Payment Update Submit
-  const handlePaymentUpdateSubmit = (e: React.FormEvent) => {
+  const handlePaymentUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const targetId = payUpdateAuthorId || (authors[0]?.id || '')
     if (!targetId) {
@@ -392,8 +509,8 @@ export const Dashboard: React.FC = () => {
       return
     }
 
-    const authorIndex = authors.findIndex(a => a.id === targetId)
-    if (authorIndex === -1) {
+    const targetAuthor = authors.find(a => a.id === targetId)
+    if (!targetAuthor) {
       showToast('Error: Author not found!')
       return
     }
@@ -401,56 +518,52 @@ export const Dashboard: React.FC = () => {
     const copiesVal = Math.max(0, parseInt(payUpdateCopies) || 0)
     const paidVal = Math.max(0, parseFloat(payUpdatePaid) || 0)
 
-    const updatedAuthors = [...authors]
-    const targetAuthor = updatedAuthors[authorIndex]
+    const { data: salesData, error: fetchErr } = await supabase
+      .from('monthly_sales')
+      .select('id')
+      .eq('author_id', targetId)
+      .order('month_name', { ascending: false })
+      .limit(1)
 
-    // Update copies and paid in the latest month, keep others unchanged
-    const updatedMonths = targetAuthor.months.map((m, idx) => {
-      if (idx === targetAuthor.months.length - 1) {
-        return {
-          ...m,
-          copies: copiesVal,
-          paid: paidVal
-        }
-      }
-      return m
-    })
-
-    const newSold = updatedMonths.reduce((sum, m) => sum + m.copies, 0)
-    const newRoyalty = updatedMonths.reduce((sum, m) => sum + (m.royalty || 0), 0)
-    const newPaid = updatedMonths.reduce((sum, m) => sum + (m.paid || 0), 0)
-    const newPending = Math.max(0, newRoyalty - newPaid)
-
-    updatedAuthors[authorIndex] = {
-      ...targetAuthor,
-      months: updatedMonths,
-      sold: newSold,
-      royalty: newRoyalty,
-      paid: newPaid,
-      pending: newPending
-    }
-
-    setAuthors(updatedAuthors)
-    showToast(`Success: Updated sales & payment info for "${targetAuthor.name}"!`)
-
-    // Clear inputs
-    setPayUpdateCopies('')
-    setPayUpdatePaid('')
-  }
-
-  // Author: Change password
-  const handlePasswordUpdate = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!currentAuthor) return
-
-    const authorIndex = authors.findIndex(a => a.id === currentAuthor.id)
-    if (authorIndex === -1) {
-      showToast('Error: Author not found!')
+    if (fetchErr) {
+      showToast(`Error: ${fetchErr.message}`)
       return
     }
 
-    const currentRecord = authors[authorIndex]
-    if (currentRecord.passwordHash !== currentPassword) {
+    if (salesData && salesData.length > 0) {
+      const latestSaleId = salesData[0].id
+      const grossVal = copiesVal * targetAuthor.mrp
+      const royaltyVal = Math.round(copiesVal * targetAuthor.mrp * 0.4)
+
+      const { error: updateErr } = await supabase
+        .from('monthly_sales')
+        .update({
+          copies: copiesVal,
+          gross: grossVal,
+          royalty: royaltyVal,
+          paid: paidVal
+        })
+        .eq('id', latestSaleId)
+
+      if (!updateErr) {
+        await loadData()
+        showToast(`Success: Updated sales & payment info for "${targetAuthor.name}"!`)
+        setPayUpdateCopies('')
+        setPayUpdatePaid('')
+      } else {
+        showToast(`Failed to update payments: ${updateErr.message}`)
+      }
+    } else {
+      showToast("Error: No sales entry found to update for this author! Please add a sales entry first.")
+    }
+  }
+
+  // Author: Change password
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!currentAuthor) return
+
+    if (currentAuthor.passwordHash !== currentPassword) {
       showToast('Access Denied: Current password is incorrect!')
       return
     }
@@ -460,26 +573,24 @@ export const Dashboard: React.FC = () => {
       return
     }
 
-    // Update password in database array
-    const updatedAuthors = [...authors]
-    updatedAuthors[authorIndex] = {
-      ...currentRecord,
-      passwordHash: newPassword
+    const { error } = await supabase
+      .from('authors')
+      .update({ password_hash: newPassword })
+      .eq('id', currentAuthor.id)
+
+    if (!error) {
+      await loadData()
+      setCurrentAuthor({
+        ...currentAuthor,
+        passwordHash: newPassword
+      })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmNewPassword('')
+      showToast('Password updated successfully!')
+    } else {
+      showToast(`Failed to update password: ${error.message}`)
     }
-    setAuthors(updatedAuthors)
-
-    // Update currentAuthor session state
-    setCurrentAuthor({
-      ...currentAuthor,
-      passwordHash: newPassword
-    })
-
-    // Reset inputs
-    setCurrentPassword('')
-    setNewPassword('')
-    setConfirmNewPassword('')
-
-    showToast('Password updated successfully!')
   }
 
   const money = (n: number) => '₹' + n.toLocaleString('en-IN')
@@ -508,22 +619,30 @@ export const Dashboard: React.FC = () => {
     )
   }
 
-  const handleSupportSubmit = () => {
+  const handleSupportSubmit = async () => {
     if (!supportSubject || !supportMessage) {
       showToast('Please fill out subject and message.')
       return
     }
-    const newTicket: SupportTicket = {
-      id: `t-${Date.now()}`,
-      authorEmail: currentAuthor ? currentAuthor.email : 'unknown',
-      subject: supportSubject,
-      message: supportMessage,
-      status: 'Pending'
+    const newId = `t-${Date.now()}`
+    const { error } = await supabase
+      .from('support_tickets')
+      .insert({
+        id: newId,
+        author_email: currentAuthor ? currentAuthor.email : 'unknown',
+        subject: supportSubject,
+        message: supportMessage,
+        status: 'Pending'
+      })
+
+    if (!error) {
+      await loadData()
+      showToast('Support ticket submitted successfully!')
+      setSupportSubject('')
+      setSupportMessage('')
+    } else {
+      showToast(`Failed to submit ticket: ${error.message}`)
     }
-    setTickets(prev => [...prev, newTicket])
-    showToast('Support ticket submitted successfully!')
-    setSupportSubject('')
-    setSupportMessage('')
   }
 
   const authorNav = [
@@ -1108,47 +1227,40 @@ export const Dashboard: React.FC = () => {
                     return
                   }
 
-                  setAuthors(prev => prev.map(a => {
-                    if (a.id === targetId) {
-                      const newSale: MonthSales = {
-                        name: dateVal,
+                  (async () => {
+                    const { error } = await supabase
+                      .from('monthly_sales')
+                      .insert({
+                        author_id: targetId,
+                        month_name: dateVal,
                         copies: 0,
                         gross: 0,
                         royalty: royaltyVal,
-                        bookTitle: bookTitleVal,
-                        mrp: mrpVal,
-                        isbn: isbnVal,
-                        totalCopies: totalCopiesVal,
+                        total_copies: totalCopiesVal,
                         paid: 0
-                      }
-                      
-                      const updatedMonths = [...a.months, newSale]
-                      const totalSold = updatedMonths.reduce((sum, item) => sum + item.copies, 0)
-                      const totalRoyalty = updatedMonths.reduce((sum, item) => sum + (item.royalty || 0), 0)
-                      const totalPaid = updatedMonths.reduce((sum, item) => sum + (item.paid || 0), 0)
-                      const pendingRoyalty = Math.max(0, totalRoyalty - totalPaid)
-                      
-                      return {
-                        ...a,
-                        bookTitle: bookTitleVal,
-                        mrp: mrpVal,
-                        isbn: isbnVal,
-                        months: updatedMonths,
-                        sold: totalSold,
-                        royalty: totalRoyalty,
-                        paid: totalPaid,
-                        pending: pendingRoyalty
-                      }
-                    }
-                    return a
-                  }))
+                      });
 
-                  showToast(`Success: Logged sales and updated book details!`)
-                  bookTitleInput.value = ''
-                  mrpInput.value = ''
-                  isbnInput.value = ''
-                  totalCopiesInput.value = ''
-                  royaltyInput.value = ''
+                    const { error: authorErr } = await supabase
+                      .from('authors')
+                      .update({
+                        book_title: bookTitleVal,
+                        mrp: mrpVal,
+                        isbn: isbnVal
+                      })
+                      .eq('id', targetId);
+
+                    if (!error && !authorErr) {
+                      await loadData();
+                      showToast(`Success: Logged sales and updated book details!`);
+                      bookTitleInput.value = '';
+                      mrpInput.value = '';
+                      isbnInput.value = '';
+                      totalCopiesInput.value = '';
+                      royaltyInput.value = '';
+                    } else {
+                      showToast(`Failed to log sales: ${(error || authorErr)?.message}`);
+                    }
+                  })();
                 }}
               >
                 Add Copies
@@ -1357,14 +1469,19 @@ export const Dashboard: React.FC = () => {
                         <td>
                           <select
                             value={t.status === 'Resolved' || t.status === 'Read' ? 'Read' : 'Pending'}
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const newStatus = e.target.value === 'Read' ? 'Read' : 'Pending'
-                              setTickets((prevTickets) =>
-                                prevTickets.map((item) =>
-                                  item.id === t.id ? { ...item, status: newStatus as any } : item
-                                )
-                              )
-                              showToast(`Ticket status updated to ${newStatus}`)
+                              const { error } = await supabase
+                                .from('support_tickets')
+                                .update({ status: newStatus })
+                                .eq('id', t.id)
+                              
+                              if (!error) {
+                                await loadData()
+                                showToast(`Ticket status updated to ${newStatus}`)
+                              } else {
+                                showToast(`Failed to update ticket: ${error.message}`)
+                              }
                             }}
                             style={{
                               padding: '4px 8px',
@@ -1517,17 +1634,10 @@ export const Dashboard: React.FC = () => {
                   <label>Password</label>
                   <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
-                <div className="login-row">
-                  <button type="submit" className="btn btn-primary">Log In</button>
-                  <button type="button" className="btn btn-ghost" onClick={handleQuickAdmin}>Admin Demo</button>
+                <div className="login-row" style={{ display: 'block' }}>
+                  <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Log In</button>
                 </div>
               </form>
-
-              <div className="hint" style={{ marginTop: '24px' }}>
-                Demo credentials:<br />
-                Author: author@mbpublication.in / 123456<br />
-                Admin: admin@mbpublication.in / 123456
-              </div>
             </div>
           </div>
         </div>
