@@ -378,14 +378,12 @@ export const Dashboard: React.FC = () => {
     if (salesData && salesData.length > 0) {
       const latestSaleId = salesData[0].id
       const grossVal = copiesVal * targetAuthor.mrp
-      const royaltyVal = Math.round(copiesVal * targetAuthor.mrp * 0.4)
 
       const { error: updateErr } = await supabase
         .from('monthly_sales')
         .update({
           copies: copiesVal,
           gross: grossVal,
-          royalty: royaltyVal,
           paid: paidVal
         })
         .eq('id', latestSaleId)
