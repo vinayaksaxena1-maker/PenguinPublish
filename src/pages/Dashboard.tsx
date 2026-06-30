@@ -52,57 +52,9 @@ interface SupportTicket {
   status: 'Resolved' | 'In Progress' | 'Pending' | 'Read';
 }
 
-const DEFAULT_AUTHORS: AuthorAccount[] = [
-  {
-    id: 'author-1',
-    name: 'Anita Gupta',
-    email: 'author@mbpublication.in',
-    passwordHash: '123456',
-    bookTitle: 'आँसुओं के उस पार',
-    isbn: '978-93-00000-00-0',
-    mrp: 299,
-    sold: 186,
-    royalty: 25011,
-    paid: 18600,
-    pending: 6411,
-    months: [
-      { name: 'Jan', copies: 18, gross: 5382 },
-      { name: 'Feb', copies: 22, gross: 6578 },
-      { name: 'Mar', copies: 31, gross: 9269 },
-      { name: 'Apr', copies: 27, gross: 8073 },
-      { name: 'May', copies: 42, gross: 12558 },
-      { name: 'Jun', copies: 46, gross: 13754 }
-    ],
-    status: 'Active'
-  },
-  {
-    id: 'author-2',
-    name: 'Rita Gupta',
-    email: 'rita@example.com',
-    passwordHash: '123456',
-    bookTitle: 'जहाँ प्रेम है वहीं जीवन है',
-    isbn: '978-93-00000-11-6',
-    mrp: 249,
-    sold: 48,
-    royalty: 5378,
-    paid: 4000,
-    pending: 1378,
-    months: [
-      { name: 'Jan', copies: 5, gross: 1245 },
-      { name: 'Feb', copies: 8, gross: 1992 },
-      { name: 'Mar', copies: 12, gross: 2988 },
-      { name: 'Apr', copies: 7, gross: 1743 },
-      { name: 'May', copies: 10, gross: 2490 },
-      { name: 'Jun', copies: 6, gross: 1494 }
-    ],
-    status: 'Active'
-  }
-]
+const DEFAULT_AUTHORS: AuthorAccount[] = []
 
-const DEFAULT_TICKETS: SupportTicket[] = [
-  { id: 't-1', authorEmail: 'author@mbpublication.in', subject: 'Amazon link update', message: 'Please update the store link.', status: 'Resolved' },
-  { id: 't-2', authorEmail: 'author@mbpublication.in', subject: 'Certificate correction', message: 'Name spelling correction.', status: 'In Progress' }
-]
+const DEFAULT_TICKETS: SupportTicket[] = []
 
 export const Dashboard: React.FC = () => {
   const [authors, setAuthors] = useState<AuthorAccount[]>([])
