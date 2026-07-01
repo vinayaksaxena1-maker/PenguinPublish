@@ -2,101 +2,40 @@ import React, { useState, useEffect } from 'react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import BookCard from './BookCard'
-import { Book } from './BooksData'
+import { Book, booksData } from './BooksData'
+import { supabase } from '../lib/supabaseClient'
+import { useCMS } from '../lib/useCMS'
 
 const FeaturedBooks: React.FC = () => {
-  const books: Book[] = [
-    {
-      id: 1,
-      coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "The Art of Typography",
-      author: "Amelia Sterling",
-      description: "Delve into the beautiful science of letterforms, layouts, and print aesthetics.",
-      rating: 5,
-      slug: "the-art-of-typography"
-    },
-    {
-      id: 2,
-      coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "Whispers of the Forest",
-      author: "Julian Blackwood",
-      description: "A tale of mystery, folklore, and the ancient spirits that walk under the leafy canopy.",
-      rating: 5,
-      slug: "whispers-of-the-forest"
-    },
-    {
-      id: 3,
-      coverImage: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "Finding Your Wings",
-      author: "Eleanor Vance",
-      description: "An uplifting memoir on overcoming personal hardships and learning to fly free.",
-      rating: 5,
-      slug: "finding-your-wings"
-    },
-    {
-      id: 4,
-      coverImage: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "The Golden Ratio",
-      author: "Marcus Thorne",
-      description: "Unravel the divine geometry present in nature, design, and architecture throughout history.",
-      rating: 5,
-      slug: "the-golden-ratio"
-    },
-    {
-      id: 5,
-      coverImage: "https://images.unsplash.com/photo-1531988042231-d39a9cc12a9a?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "Beyond the Horizon",
-      author: "Clara Montgomery",
-      description: "A gripping sci-fi adventure exploring human limits in the deepest corners of the galaxy.",
-      rating: 5,
-      slug: "beyond-the-horizon"
-    },
-    {
-      id: 6,
-      coverImage: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "Echoes of Eternity",
-      author: "Robert H. Vance",
-      description: "A deep dive into historical records, letters, and lost moments that shaped civilizations.",
-      rating: 5,
-      slug: "echoes-of-eternity"
-    },
-    {
-      id: 7,
-      coverImage: "https://images.unsplash.com/photo-1610116306796-6ebd30d779c6?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "Modern Architecture",
-      author: "Sophia Alistair",
-      description: "A visual showcase of contemporary structures, brutalist designs, and eco-friendly spaces.",
-      rating: 5,
-      slug: "modern-architecture"
-    },
-    {
-      id: 8,
-      coverImage: "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "Creative Thinking",
-      author: "David K. Miller",
-      description: "Learn practical techniques to unlock lateral thinking and generate ideas under pressure.",
-      rating: 5,
-      slug: "creative-thinking"
-    },
-    {
-      id: 9,
-      coverImage: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "The Vintage Collection",
-      author: "Beatrice Wells",
-      description: "A nostalgic collection of classical poetry, vintage illustrations, and prose.",
-      rating: 5,
-      slug: "the-vintage-collection"
-    },
-    {
-      id: 10,
-      coverImage: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=340&h=480&q=80",
-      title: "Paths of Wisdom",
-      author: "Harold Green",
-      description: "Philosophy, timeless lessons, and quiet reflections for leading a meaningful life.",
-      rating: 5,
-      slug: "paths-of-wisdom"
+  const { getVal } = useCMS()
+  const [books, setBooks] = useState<Book[]>(booksData)
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('books_catalog')
+          .select('*')
+          .order('id', { ascending: true })
+
+        if (!error && data && data.length > 0) {
+          const mapped = data.map((b: any) => ({
+            id: b.id,
+            title: b.title,
+            author: b.author,
+            coverImage: b.cover_image,
+            description: b.description || '',
+            rating: b.rating || 5,
+            slug: b.slug || ''
+          }))
+          setBooks(mapped)
+        }
+      } catch (err) {
+        console.error("Error fetching dynamic catalog:", err)
+      }
     }
-  ]
+    fetchBooks()
+  }, [])
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [visibleCount, setVisibleCount] = useState(4)
@@ -157,7 +96,7 @@ const FeaturedBooks: React.FC = () => {
               Curated Showcase
             </span>
             <h2 className="font-serif text-3xl sm:text-5xl font-bold text-[var(--text-dark)] leading-tight">
-              Featured Books
+              {getVal('home_showcase_heading', 'Featured Books')}
             </h2>
           </div>
           

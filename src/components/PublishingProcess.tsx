@@ -1,7 +1,9 @@
 import React from 'react'
 import { FileText, Edit, Layout, Printer, Globe } from 'lucide-react'
+import { useCMS } from '../lib/useCMS'
 
 const PublishingProcess: React.FC = () => {
+  const { getVal } = useCMS()
   const steps = [
     {
       number: 1,
@@ -45,14 +47,17 @@ const PublishingProcess: React.FC = () => {
       <div className="site-container relative z-10">
         
         {/* Section Header */}
-        <div className="flex flex-col items-center mb-20 text-center">
+        <div className="flex flex-col items-center mb-20 text-center max-w-2xl mx-auto">
           <span className="premium-badge mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#F97316]"></span>
-            How it works
+            {getVal('home_how_subheading', 'How it works')}
           </span>
           <h2 className="font-serif text-3xl sm:text-5xl font-bold text-[var(--text-dark)] leading-tight mt-1">
-            Our Publishing Process
+            {getVal('home_how_heading', 'Our Publishing Process')}
           </h2>
+          <p className="text-sm text-[var(--text-muted)] mt-3 leading-relaxed">
+            {getVal('home_how_text', 'From manuscript submission to global retail listing, we manage everything in 5 easy steps.')}
+          </p>
           <div className="w-[45px] h-[3px] bg-[#F97316] rounded-full mt-4" />
         </div>
 

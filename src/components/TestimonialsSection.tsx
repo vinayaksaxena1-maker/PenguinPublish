@@ -1,30 +1,74 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Quote } from 'lucide-react'
+import { supabase } from '../lib/supabaseClient'
+import { useCMS } from '../lib/useCMS'
+
+interface Review {
+  id: number
+  author_name: string
+  author_role: string | null
+  review_text: string
+  rating: number
+  photo_url: string | null
+}
 
 const TestimonialsSection: React.FC = () => {
-  const testimonials = [
+  const { getVal } = useCMS()
+  const [reviews, setReviews] = useState<Review[]>([])
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('*')
+          .order('id', { ascending: true })
+
+        if (!error && data && data.length > 0) {
+          setReviews(data)
+        }
+      } catch (err) {
+        console.error("Error fetching reviews:", err)
+      }
+    }
+    fetchReviews()
+  }, [])
+
+  const defaultTestimonials = [
     {
       id: 1,
       quote: "MB Publisher made my dream come true. Their professionalism, quality, and support are unmatched!",
       author: "Ritika Sharma",
       role: "Author of 'Whispers of Destiny'",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80"
+      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80",
+      rating: 5
     },
     {
       id: 2,
       quote: "From editing to printing, everything was handled perfectly. Highly recommended for every author!",
       author: "Arjun Mehta",
       role: "Author of 'Echoes of Eternity'",
-      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&h=150&q=80"
+      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&h=150&q=80",
+      rating: 5
     },
     {
       id: 3,
       quote: "The print quality is exceptional and their team is very cooperative throughout the process.",
       author: "Meera Patel",
       role: "Author of 'The Golden Horizon'",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&h=150&q=80"
+      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&h=150&q=80",
+      rating: 5
     }
   ]
+
+  const testimonialsToRender = reviews.length > 0 ? reviews.map(r => ({
+    id: r.id,
+    quote: r.review_text,
+    author: r.author_name,
+    role: r.author_role || '',
+    image: r.photo_url || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80",
+    rating: r.rating || 5
+  })) : defaultTestimonials
 
   return (
     <section className="py-20 md:py-28 border-b border-[var(--border-color)] relative overflow-hidden bg-[var(--bg-primary)]">
@@ -37,17 +81,17 @@ const TestimonialsSection: React.FC = () => {
         <div className="flex flex-col items-center mb-16 text-center max-w-2xl mx-auto">
           <span className="premium-badge mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[#F97316]"></span>
-            Author Reviews
+            {getVal('home_review_subheading', 'Author Reviews')}
           </span>
           <h2 className="font-serif text-3xl sm:text-5xl font-bold text-[var(--text-dark)] leading-tight mt-1">
-            What Authors Say About Us
+            {getVal('home_review_heading', 'What Authors Say About Us')}
           </h2>
           <div className="w-[45px] h-[3px] bg-[#F97316] rounded-full mt-4" />
         </div>
 
         {/* TESTIMONIAL LAYOUT */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
-          {testimonials.map((item) => (
+          {testimonialsToRender.map((item) => (
             <div 
               key={item.id} 
               className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-8 hover:-translate-y-2 hover:border-[#F97316]/50 transition-all duration-500 flex flex-col justify-between h-full group shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:shadow-[0_20px_48px_rgba(249,115,22,0.1)]"
@@ -81,7 +125,7 @@ const TestimonialsSection: React.FC = () => {
                   
                   {/* Rating */}
                   <div className="flex items-center gap-0.5 mt-2.5">
-                    {[...Array(5)].map((_, i) => (
+                    {[...Array(item.rating)].map((_, i) => (
                       <span key={i} className="text-[#F97316] text-[12px] leading-none">&#9733;</span>
                     ))}
                   </div>

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
   Target, 
@@ -13,6 +13,16 @@ import {
 import about1 from "../assets/about1.jfif"
 import about2 from "../assets/about2.jfif"
 import CTABanner from "../components/CTABanner"
+import { useCMS } from '../lib/useCMS'
+import { supabase } from '../lib/supabaseClient'
+
+interface TeamMember {
+  id: number
+  name: string
+  role: string
+  description: string | null
+  image_url: string | null
+}
 
 // Inline SVG social icons for compatibility and consistent rendering
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -36,6 +46,53 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 const About: React.FC = () => {
+  const { getVal } = useCMS()
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+
+  useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('team_members')
+          .select('*')
+          .order('id', { ascending: true })
+
+        if (!error && data && data.length > 0) {
+          setTeamMembers(data)
+        }
+      } catch (err) {
+        console.error("Error fetching team members:", err)
+      }
+    }
+    fetchTeam()
+  }, [])
+
+  const defaultTeam = [
+    {
+      id: 1,
+      name: "Suresh Patel",
+      role: "Editorial Director",
+      description: "15+ years of experience in editing and publishing.",
+      image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&h=300&q=80"
+    },
+    {
+      id: 2,
+      name: "Ananya Roy",
+      role: "Creative Design Lead",
+      description: "Expert in book cover design and layout artistry.",
+      image_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&h=300&q=80"
+    },
+    {
+      id: 3,
+      name: "Vikram Singh",
+      role: "Publishing Consultant",
+      description: "Guiding authors through every step of publishing.",
+      image_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&h=300&q=80"
+    }
+  ]
+
+  const teamList = teamMembers.length > 0 ? teamMembers : defaultTeam
+
   const steps = [
     {
       number: 1,
@@ -112,20 +169,19 @@ const About: React.FC = () => {
               {/* Small Orange Label */}
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-[10px] sm:text-xs font-semibold text-[#F97316] uppercase tracking-widest">
-                  ABOUT MB PUBLISHER
+                  {getVal('about_hero_sub', 'ABOUT MB PUBLISHER')}
                 </span>
                 <div className="w-8 h-[1.5px] bg-[#F97316]" />
               </div>
               
               {/* Main Heading */}
               <h1 className="text-3xl sm:text-4xl lg:text-[40px] xl:text-[52px] font-serif text-[#132C1F] leading-[1.12] mb-6 font-bold tracking-tight">
-                Helping Authors Transform<br />
-                Ideas Into <span className="text-[#F97316]">Published Success.</span>
+                {getVal('about_hero_heading', 'Helping Authors Transform Ideas Into Published Success.')}
               </h1>
               
               {/* Description */}
               <p className="text-[#665E58] font-sans text-[13px] sm:text-sm mb-8 leading-relaxed max-w-xl">
-                MB Publisher helps authors bring their stories to life through professional editing, premium printing, creative design, ISBN support, and global distribution.
+                {getVal('about_hero_desc', 'MB Publisher helps authors bring their stories to life through professional editing, premium printing, creative design, ISBN support, and global distribution.')}
               </p>
               
               {/* Buttons */}
@@ -134,7 +190,7 @@ const About: React.FC = () => {
                   to="/contact"
                   className="px-6 py-3 bg-[#F97316] hover:bg-[#ea6c0a] text-white font-sans font-semibold text-center rounded-xl hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg text-[10px] tracking-wider uppercase"
                 >
-                  Start Your Publishing Journey
+                  {getVal('about_hero_button', 'Start Your Publishing Journey')}
                 </Link>
                 <Link
                   to="/services"
@@ -149,7 +205,7 @@ const About: React.FC = () => {
             <div>
               <div className="relative w-full h-[280px] sm:h-[380px] lg:h-[480px] rounded-2xl overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.04)] border border-[#E6E0D5]/50">
                 <img
-                  src={about1}
+                  src={getVal('about_hero_image', about1)}
                   alt="Premium book publisher workshop"
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                 />
@@ -167,7 +223,7 @@ const About: React.FC = () => {
           {/* Centered Heading */}
           <div className="flex flex-col items-center mb-12">
             <h2 className="font-serif text-[28px] lg:text-[36px] font-bold text-[#111827] text-center leading-tight">
-              Our Story
+              {getVal('about_story_heading', 'Our Story')}
             </h2>
             <div className="w-[45px] h-[3px] bg-[#F97316] rounded-full mt-3" />
           </div>
@@ -177,7 +233,7 @@ const About: React.FC = () => {
             <div>
               <div className="relative w-full h-[260px] sm:h-[350px] lg:h-[400px] rounded-2xl overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.04)] border border-[#E6E0D5]/50">
                 <img
-                  src={about2}
+                  src={getVal('about_story_image', about2)}
                   alt="Cozy writing room with typewriter and bookshelf"
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                 />
@@ -186,16 +242,8 @@ const About: React.FC = () => {
             
             {/* Right Content */}
             <div className="flex flex-col justify-center">
-              <h3 className="font-serif text-[22px] sm:text-[26px] font-bold text-[#132C1F] mb-5 leading-snug">
-                From Manuscript To Marketplace
-              </h3>
-              
-              <p className="text-[#665E58] font-sans text-[13px] sm:text-sm leading-relaxed mb-4">
-                MB Publisher was founded with a mission to help aspiring and professional authors publish high-quality books with confidence.
-              </p>
-              
-              <p className="text-[#665E58] font-sans text-[13px] sm:text-sm leading-relaxed">
-                We combine editorial expertise, creative design, premium printing, and strategic distribution to ensure every book reaches its full potential.
+              <p className="text-[#665E58] font-sans text-[13px] sm:text-sm leading-relaxed mb-4 whitespace-pre-line">
+                {getVal('about_story_desc', 'MB Publisher was founded with a mission to help aspiring and professional authors publish high-quality books with confidence. We combine editorial expertise, creative design, premium printing, and strategic distribution to ensure every book reaches its full potential.')}
               </p>
             </div>
           </div>
@@ -214,10 +262,10 @@ const About: React.FC = () => {
                 <Target className="w-7 h-7" />
               </div>
               <h3 className="font-serif text-[20px] sm:text-[22px] font-bold text-[#111827] mb-3">
-                Our Mission
+                {getVal('about_mission_heading', 'Our Mission')}
               </h3>
               <p className="text-[#665E58] font-sans text-[13px] sm:text-sm leading-relaxed">
-                To empower authors by providing world-class publishing services and helping their stories reach readers worldwide.
+                {getVal('about_mission_desc', 'To empower authors by providing world-class publishing services and helping their stories reach readers worldwide.')}
               </p>
             </div>
             
@@ -245,8 +293,11 @@ const About: React.FC = () => {
           {/* Centered Heading */}
           <div className="flex flex-col items-center mb-12">
             <h2 className="font-serif text-[28px] lg:text-[36px] font-bold text-[#111827] text-center leading-tight">
-              Why Choose MB Publisher?
+              {getVal('about_choose_heading', 'Why Choose MB Publisher?')}
             </h2>
+            <p className="text-sm text-[#665E58] text-center mt-3 max-w-xl">
+              {getVal('about_choose_desc', 'We stand for quality, dedication, and complete transparency at every milestone.')}
+            </p>
             <div className="w-[45px] h-[3px] bg-[#F97316] rounded-full mt-3" />
           </div>
           
@@ -337,76 +388,29 @@ const About: React.FC = () => {
           
           {/* Team Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            
-            {/* Member 1 */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 p-6 bg-white border border-[#E6E0D5]/50 rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300 group">
-              <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&h=300&q=80"
-                alt="Suresh Patel"
-                className="w-20 h-20 rounded-full object-cover flex-shrink-0 border border-[#E6E0D5]/50 shadow-sm animate-fade-in"
-              />
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-[#111827] leading-tight">Suresh Patel</h3>
-                <p className="text-[10px] font-semibold text-[#F97316] uppercase tracking-wider mt-1">
-                  Editorial Director
-                </p>
-                <p className="text-[12px] text-[#665E58] mt-2.5 leading-relaxed">
-                  15+ years of experience in editing and publishing.
-                </p>
-                <div className="flex justify-center sm:justify-start gap-3 mt-4 text-[#665E58]">
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><FacebookIcon className="w-4 h-4" /></a>
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><TwitterIcon className="w-4 h-4" /></a>
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><LinkedinIcon className="w-4 h-4" /></a>
+            {teamList.map((member) => (
+              <div key={member.id} className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 p-6 bg-white border border-[#E6E0D5]/50 rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300 group">
+                <img
+                  src={member.image_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&h=300&q=80"}
+                  alt={member.name}
+                  className="w-20 h-20 rounded-full object-cover flex-shrink-0 border border-[#E6E0D5]/50 shadow-sm animate-fade-in"
+                />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-bold text-[#111827] leading-tight">{member.name}</h3>
+                  <p className="text-[10px] font-semibold text-[#F97316] uppercase tracking-wider mt-1">
+                    {member.role}
+                  </p>
+                  <p className="text-[12px] text-[#665E58] mt-2.5 leading-relaxed">
+                    {member.description}
+                  </p>
+                  <div className="flex justify-center sm:justify-start gap-3 mt-4 text-[#665E58]">
+                    <a href="#" className="hover:text-[#F97316] transition-colors"><FacebookIcon className="w-4 h-4" /></a>
+                    <a href="#" className="hover:text-[#F97316] transition-colors"><TwitterIcon className="w-4 h-4" /></a>
+                    <a href="#" className="hover:text-[#F97316] transition-colors"><LinkedinIcon className="w-4 h-4" /></a>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Member 2 */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 p-6 bg-white border border-[#E6E0D5]/50 rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300 group">
-              <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&h=300&q=80"
-                alt="Ananya Roy"
-                className="w-20 h-20 rounded-full object-cover flex-shrink-0 border border-[#E6E0D5]/50 shadow-sm animate-fade-in"
-              />
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-[#111827] leading-tight">Ananya Roy</h3>
-                <p className="text-[10px] font-semibold text-[#F97316] uppercase tracking-wider mt-1">
-                  Creative Design Lead
-                </p>
-                <p className="text-[12px] text-[#665E58] mt-2.5 leading-relaxed">
-                  Expert in book cover design and layout artistry.
-                </p>
-                <div className="flex justify-center sm:justify-start gap-3 mt-4 text-[#665E58]">
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><FacebookIcon className="w-4 h-4" /></a>
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><TwitterIcon className="w-4 h-4" /></a>
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><LinkedinIcon className="w-4 h-4" /></a>
-                </div>
-              </div>
-            </div>
-            
-            {/* Member 3 */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 p-6 bg-white border border-[#E6E0D5]/50 rounded-2xl shadow-sm hover:-translate-y-1.5 hover:shadow-md transition-all duration-300 group">
-              <img
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&h=300&q=80"
-                alt="Vikram Singh"
-                className="w-20 h-20 rounded-full object-cover flex-shrink-0 border border-[#E6E0D5]/50 shadow-sm animate-fade-in"
-              />
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-[#111827] leading-tight">Vikram Singh</h3>
-                <p className="text-[10px] font-semibold text-[#F97316] uppercase tracking-wider mt-1">
-                  Publishing Consultant
-                </p>
-                <p className="text-[12px] text-[#665E58] mt-2.5 leading-relaxed">
-                  Guiding authors through every step of publishing.
-                </p>
-                <div className="flex justify-center sm:justify-start gap-3 mt-4 text-[#665E58]">
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><FacebookIcon className="w-4 h-4" /></a>
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><TwitterIcon className="w-4 h-4" /></a>
-                  <a href="#" className="hover:text-[#F97316] transition-colors"><LinkedinIcon className="w-4 h-4" /></a>
-                </div>
-              </div>
-            </div>
-            
+            ))}
           </div>
         </div>
       </section>
@@ -418,8 +422,11 @@ const About: React.FC = () => {
           {/* Centered Heading */}
           <div className="flex flex-col items-center mb-12">
             <h2 className="font-serif text-[28px] lg:text-[36px] font-bold text-[#111827] text-center leading-tight">
-              Our Publishing Journey
+              {getVal('about_journey_heading', 'Our Publishing Journey')}
             </h2>
+            <p className="text-sm text-[#665E58] text-center mt-3 max-w-xl">
+              {getVal('about_journey_desc', 'From initial review to bookstore launch, here is how we bring your book to life.')}
+            </p>
             <div className="w-[45px] h-[3px] bg-[#F97316] rounded-full mt-3" />
           </div>
           
@@ -513,7 +520,7 @@ const About: React.FC = () => {
           {/* Testimonials Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
             
-            {/* Testimonial 1 */}
+            {/* Dynamic Testimonial 1 */}
             <div className="bg-white border border-[#E6E0D5]/60 rounded-2xl p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:shadow-[0_15px_35px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-all duration-300 h-full">
               <div>
                 {/* Quote Icon */}
@@ -522,20 +529,20 @@ const About: React.FC = () => {
                 </svg>
                 {/* Testimonial Text */}
                 <p className="text-[12px] sm:text-[13px] font-medium text-[#374151] leading-[1.6] font-sans italic mb-6">
-                  "MB publishers made my dream come true. Their professionalism, quality, and support are unmatched."
+                  {getVal('about_trusted_quote', '"MB publishers made my dream come true. Their professionalism, quality, and support are unmatched."')}
                 </p>
               </div>
 
               {/* Author Area */}
               <div className="flex items-center gap-4 pt-4 border-t border-[#F3F4F6]">
                 <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80"
-                  alt="Ritika Sharma"
+                  src={getVal('about_trusted_image', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80')}
+                  alt={getVal('about_trusted_name', 'Ritika Sharma')}
                   className="w-12 h-12 rounded-full object-cover border border-[#E6E0D5]/50 shadow-sm flex-shrink-0"
                 />
                 <div className="flex flex-col items-start">
                   <span className="text-[13px] font-bold text-[#111827] leading-none">
-                    Ritika Sharma
+                    {getVal('about_trusted_name', 'Ritika Sharma')}
                   </span>
                   <span className="text-[10px] font-semibold text-[#6B7280] mt-1 leading-none">
                     Author

@@ -2,8 +2,11 @@ import React from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import footerBg from '../assets/Footer 2.png'
+import { useCMS } from '../lib/useCMS'
 
 const CTABanner: React.FC = () => {
+  const { getVal } = useCMS()
+
   return (
     <section
       style={{
@@ -36,7 +39,7 @@ const CTABanner: React.FC = () => {
           
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/20 text-[#FAF7F2] text-[10px] font-bold tracking-widest uppercase rounded-full mb-4 backdrop-blur-md">
             <span className="w-1.5 h-1.5 rounded-full bg-[#F97316] animate-pulse"></span>
-            Start Today
+            {getVal('cta_label', 'Start Today')}
           </span>
 
           <h2
@@ -50,7 +53,7 @@ const CTABanner: React.FC = () => {
             }}
             className="cta-banner-heading tracking-tight"
           >
-            Ready to Publish Your Book?
+            {getVal('cta_title', 'Ready to Publish Your Book?')}
           </h2>
 
           <p
@@ -63,7 +66,7 @@ const CTABanner: React.FC = () => {
             }}
             className="font-sans"
           >
-            Join thousands of authors who have successfully published their books and reached readers worldwide with MB Publisher.
+            {getVal('cta_desc', 'Join thousands of authors who have successfully published their books and reached readers worldwide with MB Publisher.')}
           </p>
 
           <Link
@@ -71,7 +74,7 @@ const CTABanner: React.FC = () => {
             className="btn-premium-orange px-8 py-4 inline-flex items-center gap-2 rounded-xl text-xs font-bold tracking-wider"
             style={{ textDecoration: 'none' }}
           >
-            GET STARTED NOW
+            {getVal('cta_button', 'GET STARTED NOW')}
             <ArrowRight className="w-4 h-4 text-white" />
           </Link>
         </div>

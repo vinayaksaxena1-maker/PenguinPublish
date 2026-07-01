@@ -1,14 +1,10 @@
 import React from 'react'
+import { useCMS } from '../lib/useCMS'
 
 const MarqueeTicker: React.FC = () => {
-  const items = [
-    "ISBN Assistance",
-    "100% Author Owned Rights",
-    "Global Bookstore Distribution",
-    "Premium Printing Excellence",
-    "Professional Proofreading & Editing",
-    "1500+ Authors Served"
-  ]
+  const { getVal } = useCMS()
+  const rawText = getVal('home_marquee_text', 'ISBN Assistance • 100% Author Owned Rights • Global Bookstore Distribution • Premium Printing Excellence • Professional Proofreading & Editing • 1500+ Authors Served')
+  const items = rawText.split('•').map(s => s.trim()).filter(Boolean)
 
   // Duplicate items array to make a continuous seamless loop
   const displayItems = [...items, ...items, ...items]

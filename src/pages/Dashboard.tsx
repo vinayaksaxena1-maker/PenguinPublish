@@ -73,6 +73,101 @@ export const Dashboard: React.FC = () => {
           passwordHash: ad.password_hash
         })));
       }
+      // Fetch books catalog
+      const { data: bCatalog, error: bErr } = await supabase
+        .from('books_catalog')
+        .select('*')
+        .order('id', { ascending: true });
+      if (!bErr && bCatalog) {
+        setCatalogBooks(bCatalog);
+      }
+
+      // Fetch cms_content page texts
+      const { data: cmsData } = await supabase.from('cms_content').select('*');
+      if (cmsData) {
+        cmsData.forEach((row: any) => {
+          // Home Page
+          if (row.key === 'home_hero_heading') setHomeHeroHeading(row.value)
+          if (row.key === 'home_hero_text') setHomeHeroText(row.value)
+          if (row.key === 'home_hero_button') setHomeHeroButton(row.value)
+          if (row.key === 'home_hero_video') setHomeHeroVideo(row.value)
+          if (row.key === 'home_contact_email') setHomeContactEmail(row.value)
+          if (row.key === 'home_contact_phone') setHomeContactPhone(row.value)
+          if (row.key === 'home_contact_city') setHomeContactCity(row.value)
+          if (row.key === 'home_marquee_text') setHomeMarqueeText(row.value)
+          if (row.key === 'home_premium_heading') setHomePremiumHeading(row.value)
+          if (row.key === 'home_premium_text') setHomePremiumText(row.value)
+          if (row.key === 'home_how_heading') setHomeHowHeading(row.value)
+          if (row.key === 'home_how_subheading') setHomeHowSubheading(row.value)
+          if (row.key === 'home_how_text') setHomeHowText(row.value)
+          if (row.key === 'home_showcase_heading') setHomeShowcaseHeading(row.value)
+          if (row.key === 'home_cta_heading') setHomeCtaHeading(row.value)
+          if (row.key === 'home_cta_desc') setHomeCtaDesc(row.value)
+          if (row.key === 'home_cta_button') setHomeCtaButton(row.value)
+
+          // Books Page
+          if (row.key === 'books_portfolio_label') setCmsPortfolioLabel(row.value)
+          if (row.key === 'books_portfolio_title') setCmsPortfolioTitle(row.value)
+          if (row.key === 'books_portfolio_desc') setCmsPortfolioDesc(row.value)
+          if (row.key === 'cta_label') setCmsCtaLabel(row.value)
+          if (row.key === 'cta_title') setCmsCtaTitle(row.value)
+          if (row.key === 'cta_desc') setCmsCtaDesc(row.value)
+          if (row.key === 'cta_button') setCmsCtaButton(row.value)
+
+          // About Page
+          if (row.key === 'about_hero_image') setAboutHeroImage(row.value)
+          if (row.key === 'about_hero_sub') setAboutHeroSub(row.value)
+          if (row.key === 'about_hero_heading') setAboutHeroHeading(row.value)
+          if (row.key === 'about_hero_desc') setAboutHeroDesc(row.value)
+          if (row.key === 'about_hero_button') setAboutHeroButton(row.value)
+          if (row.key === 'about_story_image') setAboutStoryImage(row.value)
+          if (row.key === 'about_story_heading') setAboutStoryHeading(row.value)
+          if (row.key === 'about_story_desc') setAboutStoryDesc(row.value)
+          if (row.key === 'about_mission_heading') setAboutMissionHeading(row.value)
+          if (row.key === 'about_mission_desc') setAboutMissionDesc(row.value)
+          if (row.key === 'about_choose_heading') setAboutChooseHeading(row.value)
+          if (row.key === 'about_choose_desc') setAboutChooseDesc(row.value)
+          if (row.key === 'about_journey_heading') setAboutJourneyHeading(row.value)
+          if (row.key === 'about_journey_desc') setAboutJourneyDesc(row.value)
+          if (row.key === 'about_trusted_quote') setAboutTrustedQuote(row.value)
+          if (row.key === 'about_trusted_image') setAboutTrustedImage(row.value)
+          if (row.key === 'about_trusted_name') setAboutTrustedName(row.value)
+          if (row.key === 'about_trusted_rating') setAboutTrustedRating(row.value)
+          if (row.key === 'about_cta_heading') setAboutCtaHeading(row.value)
+          if (row.key === 'about_cta_desc') setAboutCtaDesc(row.value)
+          if (row.key === 'about_cta_button') setAboutCtaButton(row.value)
+
+          // Pricing Page
+          if (row.key === 'pricing_hero_sub') setPricingHeroSub(row.value)
+          if (row.key === 'pricing_hero_heading') setPricingHeroHeading(row.value)
+          if (row.key === 'pricing_hero_desc') setPricingHeroDesc(row.value)
+          if (row.key === 'pricing_hero_button') setPricingHeroButton(row.value)
+          if (row.key === 'pricing_hero_image') setPricingHeroImage(row.value)
+          if (row.key === 'pricing_pack_heading') setPricingPackHeading(row.value)
+          if (row.key === 'pricing_pack_desc') setPricingPackDesc(row.value)
+          if (row.key === 'pricing_compare_heading') setPricingCompareHeading(row.value)
+          if (row.key === 'pricing_why_heading') setPricingWhyHeading(row.value)
+          if (row.key === 'pricing_why_sub') setPricingWhySub(row.value)
+          if (row.key === 'pricing_why_desc') setPricingWhyDesc(row.value)
+        });
+      }
+
+      // Fetch dynamic reviews list
+      const { data: revData } = await supabase.from('reviews').select('*').order('id', { ascending: true })
+      if (revData) setReviewsList(revData)
+
+      // Fetch dynamic team list
+      const { data: teamData } = await supabase.from('team_members').select('*').order('id', { ascending: true })
+      if (teamData) setTeamList(teamData)
+
+      // Fetch dynamic pricing plans list
+      const { data: plansData } = await supabase.from('pricing_plans').select('*').order('id', { ascending: true })
+      if (plansData) setPricingPlansList(plansData)
+
+      // Fetch dynamic FAQs list
+      const { data: fList } = await supabase.from('faqs').select('*').order('id', { ascending: true })
+      if (fList) setFaqsList(fList)
+
       let { data: authorsData, error: authorsErr } = await supabase
         .from('authors')
         .select('*, monthly_sales(*)');
@@ -185,6 +280,116 @@ export const Dashboard: React.FC = () => {
   
   // Admin "Payments Report" filter
   const [paymentFilterAuthorId, setPaymentFilterAuthorId] = useState('all')
+
+  // Admin "Books Catalog CMS" state inputs
+  const [catalogBooks, setCatalogBooks] = useState<any[]>([])
+  const [catalogNewTitle, setCatalogNewTitle] = useState('')
+  const [catalogNewAuthor, setCatalogNewAuthor] = useState('')
+  const [catalogNewCoverImage, setCatalogNewCoverImage] = useState('')
+  const [catalogNewDescription, setCatalogNewDescription] = useState('')
+  const [catalogNewRating, setCatalogNewRating] = useState('5')
+  const [editingBookId, setEditingBookId] = useState<number | null>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+
+  // Admin "Website CMS Console" structure states
+  const [cmsPageTab, setCmsPageTab] = useState<'home' | 'books' | 'about' | 'pricing'>('home')
+
+  // HOME PAGE CMS STATES
+  const [homeHeroHeading, setHomeHeroHeading] = useState('Write, Publish & Sell Globally')
+  const [homeHeroText, setHomeHeroText] = useState('We help authors transform manuscripts into beautifully printed books and distribute them across leading platforms like Amazon and Flipkart.')
+  const [homeHeroButton, setHomeHeroButton] = useState('GET STARTED NOW')
+  const [homeHeroVideo, setHomeHeroVideo] = useState('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4')
+  const [homeContactEmail, setHomeContactEmail] = useState('publish@mbpublication.in')
+  const [homeContactPhone, setHomeContactPhone] = useState('+91 98765 43210')
+  const [homeContactCity, setHomeContactCity] = useState('New Delhi, India')
+  const [homeMarqueeText, setHomeMarqueeText] = useState('JOIN THOUSANDS OF AUTHORS • WORLDWIDE DISTRIBUTION • 100% ROYALTY • EASY MONTHLY PAYOUTS')
+  const [homePremiumHeading, setHomePremiumHeading] = useState('Why Choose MB Publisher?')
+  const [homePremiumText, setHomePremiumText] = useState('We offer premium publishing services with a dedicated project manager, complete transparency, and weekly support.')
+  const [homeHowHeading, setHomeHowHeading] = useState('How It Works')
+  const [homeHowSubheading, setHomeHowSubheading] = useState('OUR PUBLISHING PROCESS')
+  const [homeHowText, setHomeHowText] = useState('From manuscript submission to global retail listing, we manage everything in 5 easy steps.')
+  const [homeShowcaseHeading, setHomeShowcaseHeading] = useState('Curated Showcase')
+  const [homeCtaHeading, setHomeCtaHeading] = useState('Ready to Publish Your Book?')
+  const [homeCtaDesc, setHomeCtaDesc] = useState('Join thousands of authors who have successfully published their books and reached readers worldwide with MB Publisher.')
+  const [homeCtaButton, setHomeCtaButton] = useState('GET STARTED NOW')
+
+  // BOOK PAGE CMS STATES
+  const [cmsPortfolioLabel, setCmsPortfolioLabel] = useState('OUR PORTFOLIO')
+  const [cmsPortfolioTitle, setCmsPortfolioTitle] = useState('Our Published Books')
+  const [cmsPortfolioDesc, setCmsPortfolioDesc] = useState('Explore our growing collection of professionally published books across multiple genres and categories.')
+  const [cmsCtaLabel, setCmsCtaLabel] = useState('Start Today')
+  const [cmsCtaTitle, setCmsCtaTitle] = useState('Ready to Publish Your Book?')
+  const [cmsCtaDesc, setCmsCtaDesc] = useState('Join thousands of authors who have successfully published their books and reached readers worldwide with MB Publisher.')
+  const [cmsCtaButton, setCmsCtaButton] = useState('GET STARTED NOW')
+
+  // ABOUT PAGE CMS STATES
+  const [aboutHeroImage, setAboutHeroImage] = useState('https://images.unsplash.com/photo-1513001900722-370f803f498d?auto=format&fit=crop&w=800&q=80')
+  const [aboutHeroSub, setAboutHeroSub] = useState('ABOUT MB PUBLISHER')
+  const [aboutHeroHeading, setAboutHeroHeading] = useState('Empowering Voices, Sharing Stories')
+  const [aboutHeroDesc, setAboutHeroDesc] = useState('MB Publisher is a leading independent self-publishing platform dedicated to helping writers share their work with readers worldwide.')
+  const [aboutHeroButton, setAboutHeroButton] = useState('LEARN MORE')
+  const [aboutStoryImage, setAboutStoryImage] = useState('https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80')
+  const [aboutStoryHeading, setAboutStoryHeading] = useState('Our Story')
+  const [aboutStoryDesc, setAboutStoryDesc] = useState('Founded in 2018, we began with a simple mission: to make book publishing accessible, transparent, and rewarding for every author. We have since helped publish over 500 books.')
+  const [aboutMissionHeading, setAboutMissionHeading] = useState('Our Mission')
+  const [aboutMissionDesc, setAboutMissionDesc] = useState('To guide authors through the complex publishing journey by offering premium editing, creative design, and robust distribution systems.')
+  const [aboutChooseHeading, setAboutChooseHeading] = useState('Why Choose MB')
+  const [aboutChooseDesc, setAboutChooseDesc] = useState('Complete transparency, expert publishing team, 100% author rights retention, and seamless monthly sales payouts.')
+  const [aboutJourneyHeading, setAboutJourneyHeading] = useState('Our Publishing Journey')
+  const [aboutJourneyDesc, setAboutJourneyDesc] = useState('From humble beginnings to a global network, here is how we have grown with our author community.')
+  const [aboutTrustedQuote, setAboutTrustedQuote] = useState('The support and quality MB Publisher provided exceeded all my expectations. Highly recommended!')
+  const [aboutTrustedImage, setAboutTrustedImage] = useState('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&h=150&q=80')
+  const [aboutTrustedName, setAboutTrustedName] = useState('Dr. Priya Sharma')
+  const [aboutTrustedRating, setAboutTrustedRating] = useState('5')
+  const [aboutCtaHeading, setAboutCtaHeading] = useState('Ready to Publish Your Book?')
+  const [aboutCtaDesc, setAboutCtaDesc] = useState('Join thousands of authors who have successfully published their books and reached readers worldwide with MB Publisher.')
+  const [aboutCtaButton, setAboutCtaButton] = useState('GET STARTED NOW')
+
+  // PRICING PAGE CMS STATES
+  const [pricingHeroSub, setPricingHeroSub] = useState('OUR PLANS')
+  const [pricingHeroHeading, setPricingHeroHeading] = useState('Simple, Transparent Pricing')
+  const [pricingHeroDesc, setPricingHeroDesc] = useState('Choose the perfect publishing package tailored to your book project and budget. No hidden fees.')
+  const [pricingHeroButton, setPricingHeroButton] = useState('VIEW ALL PACKAGES')
+  const [pricingHeroImage, setPricingHeroImage] = useState('https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=800&q=80')
+  const [pricingPackHeading, setPricingPackHeading] = useState('Publishing Packages')
+  const [pricingPackDesc, setPricingPackDesc] = useState('Select a package that fits your editorial, design, and marketing requirements.')
+  const [pricingCompareHeading, setPricingCompareHeading] = useState('Compare All Plans')
+  const [pricingWhyHeading, setPricingWhyHeading] = useState('Why Choose MB Publisher?')
+  const [pricingWhySub, setPricingWhySub] = useState('UNBEATABLE VALUE')
+  const [pricingWhyDesc, setPricingWhyDesc] = useState('We combine quality, speed, and support to give your book the best chance of success in the retail market.')
+
+  // DYNAMIC REPEATING ITEMS LISTS
+  const [reviewsList, setReviewsList] = useState<any[]>([])
+  const [teamList, setTeamList] = useState<any[]>([])
+  const [pricingPlansList, setPricingPlansList] = useState<any[]>([])
+  const [faqsList, setFaqsList] = useState<any[]>([])
+
+  // Dynamic reviews input states
+  const [revAuthorName, setRevAuthorName] = useState('')
+  const [revAuthorRole, setRevAuthorRole] = useState('')
+  const [revReviewText, setRevReviewText] = useState('')
+  const [revRating, setRevRating] = useState('5')
+  const [revPhotoUrl, setRevPhotoUrl] = useState('')
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null)
+
+  // Dynamic team members input states
+  const [teamName, setTeamName] = useState('')
+  const [teamRole, setTeamRole] = useState('')
+  const [teamDesc, setTeamDesc] = useState('')
+  const [teamImageUrl, setTeamImageUrl] = useState('')
+  const [editingTeamId, setEditingTeamId] = useState<number | null>(null)
+
+  // Dynamic pricing plans input states
+  const [planName, setPlanName] = useState('')
+  const [planPrice, setPlanPrice] = useState('')
+  const [planPoints, setPlanPoints] = useState('')
+  const [planButtonText, setPlanButtonText] = useState('')
+  const [editingPlanId, setEditingPlanId] = useState<number | null>(null)
+
+  // Dynamic FAQs input states
+  const [faqQuestion, setFaqQuestion] = useState('')
+  const [faqAnswer, setFaqAnswer] = useState('')
+  const [editingFaqId, setEditingFaqId] = useState<number | null>(null)
 
   // Author "Update Password" state inputs
   const [currentPassword, setCurrentPassword] = useState('')
@@ -491,6 +696,622 @@ export const Dashboard: React.FC = () => {
     }
   }
 
+  // Admin: Handle Cover Image Upload to Supabase Storage
+  const handleCatalogCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingImage(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`
+      
+      const { data, error } = await supabase.storage
+        .from('book-covers')
+        .upload(fileName, file)
+
+      if (error) {
+        showToast(`Upload failed: ${error.message}`)
+        return
+      }
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('book-covers')
+        .getPublicUrl(fileName)
+
+      if (publicUrlData?.publicUrl) {
+        setCatalogNewCoverImage(publicUrlData.publicUrl)
+        showToast('Image uploaded successfully!')
+      } else {
+        showToast('Failed to retrieve public URL of uploaded image.')
+      }
+
+    } catch (err: any) {
+      console.error(err)
+      showToast(`Error uploading cover: ${err.message || err}`)
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
+  // Admin: Add or Edit Catalog Book
+  const handleCatalogBookSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!catalogNewTitle || !catalogNewAuthor || !catalogNewCoverImage || !catalogNewDescription) {
+      showToast('Please fill out all book details fields!')
+      return
+    }
+
+    // Auto-generate slug from title
+    const slugVal = catalogNewTitle.toLowerCase()
+      .replace(/[^a-z0-9 ]/g, '')
+      .replace(/\s+/g, '-')
+
+    if (editingBookId !== null) {
+      // Update existing book
+      const { error } = await supabase
+        .from('books_catalog')
+        .update({
+          title: catalogNewTitle,
+          author: catalogNewAuthor,
+          cover_image: catalogNewCoverImage,
+          description: catalogNewDescription,
+          rating: parseInt(catalogNewRating),
+          slug: slugVal
+        })
+        .eq('id', editingBookId)
+
+      if (!error) {
+        await loadData()
+        showToast(`Book "${catalogNewTitle}" updated successfully!`)
+        setEditingBookId(null)
+        setCatalogNewTitle('')
+        setCatalogNewAuthor('')
+        setCatalogNewCoverImage('')
+        setCatalogNewDescription('')
+        setCatalogNewRating('5')
+      } else {
+        showToast(`Failed to update book: ${error.message}`)
+      }
+    } else {
+      // Add new book
+      const { error } = await supabase
+        .from('books_catalog')
+        .insert({
+          title: catalogNewTitle,
+          author: catalogNewAuthor,
+          cover_image: catalogNewCoverImage,
+          description: catalogNewDescription,
+          rating: parseInt(catalogNewRating),
+          slug: slugVal
+        })
+
+      if (!error) {
+        await loadData()
+        showToast(`Book "${catalogNewTitle}" added to catalog!`)
+        setCatalogNewTitle('')
+        setCatalogNewAuthor('')
+        setCatalogNewCoverImage('')
+        setCatalogNewDescription('')
+        setCatalogNewRating('5')
+      } else {
+        showToast(`Failed to add book: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Delete Catalog Book
+  const handleCatalogBookDelete = async (id: number) => {
+    const { error } = await supabase
+      .from('books_catalog')
+      .delete()
+      .eq('id', id)
+
+    if (!error) {
+      await loadData()
+      showToast('Book removed from catalog successfully!')
+      if (editingBookId === id) {
+        setEditingBookId(null)
+        setCatalogNewTitle('')
+        setCatalogNewAuthor('')
+        setCatalogNewCoverImage('')
+        setCatalogNewDescription('')
+        setCatalogNewRating('5')
+      }
+    } else {
+      showToast(`Failed to delete book: ${error.message}`)
+    }
+  }
+
+  // Admin: Reusable media uploader helper for CMS files
+  const uploadMediaToStorage = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`
+      
+      const { data, error } = await supabase.storage
+        .from('book-covers')
+        .upload(fileName, file)
+
+      if (error) {
+        showToast(`Upload failed: ${error.message}`)
+        return null
+      }
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('book-covers')
+        .getPublicUrl(fileName)
+
+      return publicUrlData?.publicUrl || null
+    } catch (err: any) {
+      console.error(err)
+      showToast(`Error uploading media: ${err.message || err}`)
+      return null
+    }
+  }
+
+  // Admin: Handle Home Page text updates
+  const handleHomeTextSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const updates = [
+      { key: 'home_hero_heading', value: homeHeroHeading },
+      { key: 'home_hero_text', value: homeHeroText },
+      { key: 'home_hero_button', value: homeHeroButton },
+      { key: 'home_hero_video', value: homeHeroVideo },
+      { key: 'home_contact_email', value: homeContactEmail },
+      { key: 'home_contact_phone', value: homeContactPhone },
+      { key: 'home_contact_city', value: homeContactCity },
+      { key: 'home_marquee_text', value: homeMarqueeText },
+      { key: 'home_premium_heading', value: homePremiumHeading },
+      { key: 'home_premium_text', value: homePremiumText },
+      { key: 'home_how_heading', value: homeHowHeading },
+      { key: 'home_how_subheading', value: homeHowSubheading },
+      { key: 'home_how_text', value: homeHowText },
+      { key: 'home_showcase_heading', value: homeShowcaseHeading },
+      { key: 'home_cta_heading', value: homeCtaHeading },
+      { key: 'home_cta_desc', value: homeCtaDesc },
+      { key: 'home_cta_button', value: homeCtaButton }
+    ]
+
+    let hasError = false
+    let errMsg = ''
+    for (const item of updates) {
+      if (item.value === undefined || item.value === null || item.value === '') {
+        continue // Skip empty fields so they do not overwrite populated DB values with blank space
+      }
+      const { error } = await supabase.from('cms_content').upsert({ key: item.key, value: item.value })
+      if (error) {
+        hasError = true
+        errMsg = error.message
+        break
+      }
+    }
+
+    if (!hasError) {
+      await loadData()
+      showToast('Home page text content updated successfully!')
+    } else {
+      showToast(`Failed to update home page content: ${errMsg}`)
+    }
+  }
+
+  // Admin: Handle Books Page text updates
+  const handleBooksTextSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const updates = [
+      { key: 'books_portfolio_label', value: cmsPortfolioLabel },
+      { key: 'books_portfolio_title', value: cmsPortfolioTitle },
+      { key: 'books_portfolio_desc', value: cmsPortfolioDesc },
+      { key: 'cta_label', value: cmsCtaLabel },
+      { key: 'cta_title', value: cmsCtaTitle },
+      { key: 'cta_desc', value: cmsCtaDesc },
+      { key: 'cta_button', value: cmsCtaButton }
+    ]
+
+    let hasError = false
+    let errMsg = ''
+    for (const item of updates) {
+      if (item.value === undefined || item.value === null || item.value === '') {
+        continue
+      }
+      const { error } = await supabase.from('cms_content').upsert({ key: item.key, value: item.value })
+      if (error) {
+        hasError = true
+        errMsg = error.message
+        break
+      }
+    }
+
+    if (!hasError) {
+      await loadData()
+      showToast('Books page text content updated successfully!')
+    } else {
+      showToast(`Failed to update books page content: ${errMsg}`)
+    }
+  }
+
+  // Admin: Handle About Page text updates
+  const handleAboutTextSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const updates = [
+      { key: 'about_hero_image', value: aboutHeroImage },
+      { key: 'about_hero_sub', value: aboutHeroSub },
+      { key: 'about_hero_heading', value: aboutHeroHeading },
+      { key: 'about_hero_desc', value: aboutHeroDesc },
+      { key: 'about_hero_button', value: aboutHeroButton },
+      { key: 'about_story_image', value: aboutStoryImage },
+      { key: 'about_story_heading', value: aboutStoryHeading },
+      { key: 'about_story_desc', value: aboutStoryDesc },
+      { key: 'about_mission_heading', value: aboutMissionHeading },
+      { key: 'about_mission_desc', value: aboutMissionDesc },
+      { key: 'about_choose_heading', value: aboutChooseHeading },
+      { key: 'about_choose_desc', value: aboutChooseDesc },
+      { key: 'about_journey_heading', value: aboutJourneyHeading },
+      { key: 'about_journey_desc', value: aboutJourneyDesc },
+      { key: 'about_trusted_quote', value: aboutTrustedQuote },
+      { key: 'about_trusted_image', value: aboutTrustedImage },
+      { key: 'about_trusted_name', value: aboutTrustedName },
+      { key: 'about_trusted_rating', value: aboutTrustedRating },
+      { key: 'about_cta_heading', value: aboutCtaHeading },
+      { key: 'about_cta_desc', value: aboutCtaDesc },
+      { key: 'about_cta_button', value: aboutCtaButton }
+    ]
+
+    let hasError = false
+    let errMsg = ''
+    for (const item of updates) {
+      if (item.value === undefined || item.value === null || item.value === '') {
+        continue
+      }
+      const { error } = await supabase.from('cms_content').upsert({ key: item.key, value: item.value })
+      if (error) {
+        hasError = true
+        errMsg = error.message
+        break
+      }
+    }
+
+    if (!hasError) {
+      await loadData()
+      showToast('About page text content updated successfully!')
+    } else {
+      showToast(`Failed to update about page content: ${errMsg}`)
+    }
+  }
+
+  // Admin: Handle Pricing Page text updates
+  const handlePricingTextSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const updates = [
+      { key: 'pricing_hero_sub', value: pricingHeroSub },
+      { key: 'pricing_hero_heading', value: pricingHeroHeading },
+      { key: 'pricing_hero_desc', value: pricingHeroDesc },
+      { key: 'pricing_hero_button', value: pricingHeroButton },
+      { key: 'pricing_hero_image', value: pricingHeroImage },
+      { key: 'pricing_pack_heading', value: pricingPackHeading },
+      { key: 'pricing_pack_desc', value: pricingPackDesc },
+      { key: 'pricing_compare_heading', value: pricingCompareHeading },
+      { key: 'pricing_why_heading', value: pricingWhyHeading },
+      { key: 'pricing_why_sub', value: pricingWhySub },
+      { key: 'pricing_why_desc', value: pricingWhyDesc }
+    ]
+
+    let hasError = false
+    let errMsg = ''
+    for (const item of updates) {
+      if (item.value === undefined || item.value === null || item.value === '') {
+        continue
+      }
+      const { error } = await supabase.from('cms_content').upsert({ key: item.key, value: item.value })
+      if (error) {
+        hasError = true
+        errMsg = error.message
+        break
+      }
+    }
+
+    if (!hasError) {
+      await loadData()
+      showToast('Pricing page text content updated successfully!')
+    } else {
+      showToast(`Failed to update pricing page content: ${errMsg}`)
+    }
+  }
+
+  // Admin: Create or Edit Author Review
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!revAuthorName || !revReviewText) {
+      showToast('Please enter Author Name and Review Text!')
+      return
+    }
+
+    if (editingReviewId !== null) {
+      const { error } = await supabase
+        .from('reviews')
+        .update({
+          author_name: revAuthorName,
+          author_role: revAuthorRole,
+          review_text: revReviewText,
+          rating: parseInt(revRating),
+          photo_url: revPhotoUrl
+        })
+        .eq('id', editingReviewId)
+
+      if (!error) {
+        await loadData()
+        showToast('Review updated successfully!')
+        setEditingReviewId(null)
+        setRevAuthorName('')
+        setRevAuthorRole('')
+        setRevReviewText('')
+        setRevRating('5')
+        setRevPhotoUrl('')
+      } else {
+        showToast(`Failed to update review: ${error.message}`)
+      }
+    } else {
+      const { error } = await supabase
+        .from('reviews')
+        .insert({
+          author_name: revAuthorName,
+          author_role: revAuthorRole,
+          review_text: revReviewText,
+          rating: parseInt(revRating),
+          photo_url: revPhotoUrl || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80'
+        })
+
+      if (!error) {
+        await loadData()
+        showToast('New review added successfully!')
+        setRevAuthorName('')
+        setRevAuthorRole('')
+        setRevReviewText('')
+        setRevRating('5')
+        setRevPhotoUrl('')
+      } else {
+        showToast(`Failed to add review: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Delete Review
+  const handleReviewDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this review?')) {
+      const { error } = await supabase.from('reviews').delete().eq('id', id)
+      if (!error) {
+        await loadData()
+        showToast('Review deleted successfully!')
+        if (editingReviewId === id) {
+          setEditingReviewId(null)
+          setRevAuthorName('')
+          setRevAuthorRole('')
+          setRevReviewText('')
+          setRevRating('5')
+          setRevPhotoUrl('')
+        }
+      } else {
+        showToast(`Failed to delete review: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Create or Edit Team Member
+  const handleTeamMemberSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!teamName || !teamRole) {
+      showToast('Please enter Team Member Name and Role!')
+      return
+    }
+
+    if (editingTeamId !== null) {
+      const { error } = await supabase
+        .from('team_members')
+        .update({
+          name: teamName,
+          role: teamRole,
+          description: teamDesc,
+          image_url: teamImageUrl
+        })
+        .eq('id', editingTeamId)
+
+      if (!error) {
+        await loadData()
+        showToast('Team member updated successfully!')
+        setEditingTeamId(null)
+        setTeamName('')
+        setTeamRole('')
+        setTeamDesc('')
+        setTeamImageUrl('')
+      } else {
+        showToast(`Failed to update team member: ${error.message}`)
+      }
+    } else {
+      const { error } = await supabase
+        .from('team_members')
+        .insert({
+          name: teamName,
+          role: teamRole,
+          description: teamDesc,
+          image_url: teamImageUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&h=300&q=80'
+        })
+
+      if (!error) {
+        await loadData()
+        showToast('Team member added successfully!')
+        setTeamName('')
+        setTeamRole('')
+        setTeamDesc('')
+        setTeamImageUrl('')
+      } else {
+        showToast(`Failed to add team member: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Delete Team Member
+  const handleTeamMemberDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this team member?')) {
+      const { error } = await supabase.from('team_members').delete().eq('id', id)
+      if (!error) {
+        await loadData()
+        showToast('Team member deleted successfully!')
+        if (editingTeamId === id) {
+          setEditingTeamId(null)
+          setTeamName('')
+          setTeamRole('')
+          setTeamDesc('')
+          setTeamImageUrl('')
+        }
+      } else {
+        showToast(`Failed to delete team member: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Create or Edit Pricing Plan
+  const handlePricingPlanSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!planName || !planPrice || !planPoints) {
+      showToast('Please enter Plan Name, Price, and Features list!')
+      return
+    }
+
+    if (editingPlanId !== null) {
+      const { error } = await supabase
+        .from('pricing_plans')
+        .update({
+          name: planName,
+          price: planPrice,
+          points: planPoints,
+          button_text: planButtonText || 'Get Started'
+        })
+        .eq('id', editingPlanId)
+
+      if (!error) {
+        await loadData()
+        showToast('Pricing plan updated successfully!')
+        setEditingPlanId(null)
+        setPlanName('')
+        setPlanPrice('')
+        setPlanPoints('')
+        setPlanButtonText('')
+      } else {
+        showToast(`Failed to update package: ${error.message}`)
+      }
+    } else {
+      const { error } = await supabase
+        .from('pricing_plans')
+        .insert({
+          name: planName,
+          price: planPrice,
+          points: planPoints,
+          button_text: planButtonText || 'Get Started'
+        })
+
+      if (!error) {
+        await loadData()
+        showToast('Pricing package added successfully!')
+        setPlanName('')
+        setPlanPrice('')
+        setPlanPoints('')
+        setPlanButtonText('')
+      } else {
+        showToast(`Failed to add package: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Delete Pricing Plan
+  const handlePricingPlanDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this plan?')) {
+      const { error } = await supabase.from('pricing_plans').delete().eq('id', id)
+      if (!error) {
+        await loadData()
+        showToast('Pricing package deleted successfully!')
+        if (editingPlanId === id) {
+          setEditingPlanId(null)
+          setPlanName('')
+          setPlanPrice('')
+          setPlanPoints('')
+          setPlanButtonText('')
+        }
+      } else {
+        showToast(`Failed to delete package: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Create or Edit FAQ
+  const handleFaqSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!faqQuestion || !faqAnswer) {
+      showToast('Please fill out both Question and Answer fields!')
+      return
+    }
+
+    if (editingFaqId !== null) {
+      const { error } = await supabase
+        .from('faqs')
+        .update({
+          question: faqQuestion,
+          answer: faqAnswer
+        })
+        .eq('id', editingFaqId)
+
+      if (!error) {
+        await loadData()
+        showToast('FAQ updated successfully!')
+        setEditingFaqId(null)
+        setFaqQuestion('')
+        setFaqAnswer('')
+      } else {
+        showToast(`Failed to update FAQ: ${error.message}`)
+      }
+    } else {
+      const { error } = await supabase
+        .from('faqs')
+        .insert({
+          question: faqQuestion,
+          answer: faqAnswer
+        })
+
+      if (!error) {
+        await loadData()
+        showToast('FAQ added successfully!')
+        setFaqQuestion('')
+        setFaqAnswer('')
+      } else {
+        showToast(`Failed to add FAQ: ${error.message}`)
+      }
+    }
+  }
+
+  // Admin: Delete FAQ
+  const handleFaqDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this FAQ?')) {
+      const { error } = await supabase.from('faqs').delete().eq('id', id)
+      if (!error) {
+        await loadData()
+        showToast('FAQ deleted successfully!')
+        if (editingFaqId === id) {
+          setEditingFaqId(null)
+          setFaqQuestion('')
+          setFaqAnswer('')
+        }
+      } else {
+        showToast(`Failed to delete FAQ: ${error.message}`)
+      }
+    }
+  }
+
   const authorNav = [
     { id: 'overview', icon: '📊', label: 'Overview' },
     { id: 'sales', icon: '📈', label: 'Sales' },
@@ -505,6 +1326,7 @@ export const Dashboard: React.FC = () => {
     { id: 'addEntries', icon: '➕', label: 'Add Section' },
     { id: 'payments', icon: '₹', label: 'Payments' },
     { id: 'queries', icon: '💬', label: 'Support Tickets' },
+    { id: 'manageCms', icon: '🌐', label: 'Manage CMS' },
     { id: 'help', icon: '❓', label: 'Help Section' }
   ]
 
@@ -1471,6 +2293,927 @@ export const Dashboard: React.FC = () => {
                 <strong>Author Portal Linking:</strong> Author dashboard me login karke apni details dekh sakega, jisme status "Pending Payout" ya "Cleared" automatic updates dikhega.
               </p>
             </div>
+          </div>
+        )
+
+      case 'manageCms':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Top Page Selector Tabs */}
+            <div style={{ display: 'flex', gap: '10px', borderBottom: '2px solid var(--line)', paddingBottom: '12px' }}>
+              {['home', 'books', 'about', 'pricing'].map((tabKey) => (
+                <button
+                  key={tabKey}
+                  className="btn"
+                  style={{
+                    background: cmsPageTab === tabKey ? 'var(--primary)' : 'var(--soft)',
+                    color: cmsPageTab === tabKey ? '#fff' : 'var(--ink)',
+                    fontWeight: 'bold',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    textTransform: 'capitalize'
+                  }}
+                  onClick={() => setCmsPageTab(tabKey as any)}
+                >
+                  {tabKey} Page CMS
+                </button>
+              ))}
+            </div>
+
+            {/* HOME PAGE SUB-TAB */}
+            {cmsPageTab === 'home' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="card">
+                  <div className="section-title">
+                    <h3>Home Page Section Texts</h3>
+                  </div>
+                  <form onSubmit={handleHomeTextSubmit} style={{ marginTop: '16px' }}>
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px' }}>
+                      1. Hero Section & General Contact Info
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Left Box Heading</label>
+                        <input type="text" value={homeHeroHeading} onChange={(e) => setHomeHeroHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Button Text</label>
+                        <input type="text" value={homeHeroButton} onChange={(e) => setHomeHeroButton(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Left Sub-description</label>
+                        <textarea rows={3} value={homeHeroText} onChange={(e) => setHomeHeroText(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Contact Email</label>
+                        <input type="email" value={homeContactEmail} onChange={(e) => setHomeContactEmail(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Contact Phone</label>
+                        <input type="text" value={homeContactPhone} onChange={(e) => setHomeContactPhone(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>City Name</label>
+                        <input type="text" value={homeContactCity} onChange={(e) => setHomeContactCity(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Hero Video (Local Upload from Computer)</label>
+                        <input 
+                          type="file" 
+                          accept="video/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading video to Supabase...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setHomeHeroVideo(url)
+                                showToast('Hero Video uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                        {homeHeroVideo && (
+                          <div style={{ marginTop: '8px' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Video loaded: <a href={homeHeroVideo} target="_blank" rel="noreferrer">preview</a></span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px' }}>
+                      2. Marquee & Premium & Showcase Header
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Marquee Scrollable Text</label>
+                        <input type="text" value={homeMarqueeText} onChange={(e) => setHomeMarqueeText(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Premium Section Heading</label>
+                        <input type="text" value={homePremiumHeading} onChange={(e) => setHomePremiumHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Showcase Heading</label>
+                        <input type="text" value={homeShowcaseHeading} onChange={(e) => setHomeShowcaseHeading(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Premium Section Text</label>
+                        <textarea rows={3} value={homePremiumText} onChange={(e) => setHomePremiumText(e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px' }}>
+                      3. How It Works Section & Start Today CTA
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Process Section Heading</label>
+                        <input type="text" value={homeHowHeading} onChange={(e) => setHomeHowHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Process Subheading</label>
+                        <input type="text" value={homeHowSubheading} onChange={(e) => setHomeHowSubheading(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Process Description Subtext</label>
+                        <textarea rows={3} value={homeHowText} onChange={(e) => setHomeHowText(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>CTA Section Heading</label>
+                        <input type="text" value={homeCtaHeading} onChange={(e) => setHomeCtaHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>CTA Button Text</label>
+                        <input type="text" value={homeCtaButton} onChange={(e) => setHomeCtaButton(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>CTA Section Description</label>
+                        <textarea rows={2} value={homeCtaDesc} onChange={(e) => setHomeCtaDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
+                      Save Home Page Text CMS
+                    </button>
+                  </form>
+                </div>
+
+                {/* Dynamic reviews List CRUD */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
+                  <div className="card">
+                    <div className="section-title">
+                      <h3>{editingReviewId !== null ? 'Edit Author Review' : 'Add New Author Review'}</h3>
+                      {editingReviewId !== null && (
+                        <button className="btn btn-soft" onClick={() => {
+                          setEditingReviewId(null)
+                          setRevAuthorName('')
+                          setRevAuthorRole('')
+                          setRevReviewText('')
+                          setRevRating('5')
+                          setRevPhotoUrl('')
+                        }}>Cancel Edit</button>
+                      )}
+                    </div>
+                    <form onSubmit={handleReviewSubmit}>
+                      <div className="form-grid">
+                        <div className="field">
+                          <label>Author Name</label>
+                          <input type="text" value={revAuthorName} onChange={(e) => setRevAuthorName(e.target.value)} required />
+                        </div>
+                        <div className="field">
+                          <label>Book Title / Role</label>
+                          <input type="text" value={revAuthorRole} onChange={(e) => setRevAuthorRole(e.target.value)} placeholder="e.g. Author of 'Whispers'" />
+                        </div>
+                        <div className="field">
+                          <label>Author Photo (From Computer)</label>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                showToast('Uploading photo...')
+                                const url = await uploadMediaToStorage(file)
+                                if (url) {
+                                  setRevPhotoUrl(url)
+                                  showToast('Photo uploaded!')
+                                }
+                              }
+                            }}
+                          />
+                          {revPhotoUrl && <img src={revPhotoUrl} alt="Author Preview" style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '50%', marginTop: '6px' }} />}
+                        </div>
+                        <div className="field">
+                          <label>Star Rating</label>
+                          <select value={revRating} onChange={(e) => setRevRating(e.target.value)}>
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                          </select>
+                        </div>
+                        <div className="field" style={{ gridColumn: 'span 2' }}>
+                          <label>Review Text</label>
+                          <textarea rows={3} value={revReviewText} onChange={(e) => setRevReviewText(e.target.value)} required />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>
+                        {editingReviewId !== null ? 'Update Review' : 'Add Review'}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="card" style={{ gridColumn: 'span 2' }}>
+                    <div className="section-title">
+                      <h3>Live Website Author Reviews ({reviewsList.length})</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Photo</th>
+                            <th>Author & Role</th>
+                            <th>Rating</th>
+                            <th>Review Text</th>
+                            <th style={{ textAlign: 'center' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reviewsList.map((r) => (
+                            <tr key={r.id}>
+                              <td>
+                                <img src={r.photo_url} alt={r.author_name} style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '50%' }} />
+                              </td>
+                              <td>
+                                <b>{r.author_name}</b><br />
+                                <small style={{ color: 'var(--muted)' }}>{r.author_role}</small>
+                              </td>
+                              <td>⭐ {r.rating}/5</td>
+                              <td>
+                                <p style={{ fontSize: '12px', maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.review_text}</p>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                  <button className="btn btn-soft" style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }} onClick={() => {
+                                    setEditingReviewId(r.id)
+                                    setRevAuthorName(r.author_name)
+                                    setRevAuthorRole(r.author_role || '')
+                                    setRevReviewText(r.review_text)
+                                    setRevRating(String(r.rating))
+                                    setRevPhotoUrl(r.photo_url || '')
+                                  }}>Edit</button>
+                                  <button className="btn" style={{ background: '#ef4444', color: '#fff', padding: '4px 10px', fontSize: '11px', borderRadius: '6px', fontWeight: 'bold' }} onClick={() => handleReviewDelete(r.id)}>Delete</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* BOOK PAGE SUB-TAB */}
+            {cmsPageTab === 'books' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="card">
+                  <div className="section-title">
+                    <h3>Book Page Section Texts</h3>
+                  </div>
+                  <form onSubmit={handleBooksTextSubmit} style={{ marginTop: '16px' }}>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Portfolio Label</label>
+                        <input type="text" value={cmsPortfolioLabel} onChange={(e) => setCmsPortfolioLabel(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Portfolio Title</label>
+                        <input type="text" value={cmsPortfolioTitle} onChange={(e) => setCmsPortfolioTitle(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Portfolio Description</label>
+                        <textarea rows={3} value={cmsPortfolioDesc} onChange={(e) => setCmsPortfolioDesc(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>CTA Label</label>
+                        <input type="text" value={cmsCtaLabel} onChange={(e) => setCmsCtaLabel(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>CTA Title</label>
+                        <input type="text" value={cmsCtaTitle} onChange={(e) => setCmsCtaTitle(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>CTA Button Text</label>
+                        <input type="text" value={cmsCtaButton} onChange={(e) => setCmsCtaButton(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>CTA Description</label>
+                        <textarea rows={3} value={cmsCtaDesc} onChange={(e) => setCmsCtaDesc(e.target.value)} required />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
+                      Save Book Page Text CMS
+                    </button>
+                  </form>
+                </div>
+
+                {/* Books Catalog list (original) */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
+                  
+                  {/* Left side: Book Form */}
+                  <div className="card">
+                    <div className="section-title">
+                      <h3>{editingBookId !== null ? 'Edit Book Details' : 'Add New Book to Catalog'}</h3>
+                      {editingBookId !== null && (
+                        <button className="btn btn-soft" onClick={() => {
+                          setEditingBookId(null)
+                          setCatalogNewTitle('')
+                          setCatalogNewAuthor('')
+                          setCatalogNewCoverImage('')
+                          setCatalogNewDescription('')
+                          setCatalogNewRating('5')
+                        }}>Cancel Edit</button>
+                      )}
+                    </div>
+                    <form onSubmit={handleCatalogBookSubmit}>
+                      <div className="form-grid">
+                        <div className="field">
+                          <label>Book Title</label>
+                          <input type="text" value={catalogNewTitle} onChange={(e) => setCatalogNewTitle(e.target.value)} required />
+                        </div>
+                        <div className="field">
+                          <label>Author Name</label>
+                          <input type="text" value={catalogNewAuthor} onChange={(e) => setCatalogNewAuthor(e.target.value)} required />
+                        </div>
+                        <div className="field">
+                          <label>Book Cover Image (From Computer)</label>
+                          <input 
+                            type="file" 
+                            onChange={handleCatalogCoverUpload} 
+                            accept="image/*" 
+                            required={editingBookId === null && !catalogNewCoverImage}
+                          />
+                          {catalogNewCoverImage && <img src={catalogNewCoverImage} alt="Cover Preview" style={{ width: '42px', height: '60px', objectFit: 'cover', borderRadius: '4px', marginTop: '6px' }} />}
+                        </div>
+                        <div className="field">
+                          <label>Book Rating (1-5)</label>
+                          <select value={catalogNewRating} onChange={(e) => setCatalogNewRating(e.target.value)}>
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                          </select>
+                        </div>
+                        <div className="field" style={{ gridColumn: 'span 2' }}>
+                          <label>Book Description</label>
+                          <textarea rows={4} value={catalogNewDescription} onChange={(e) => setCatalogNewDescription(e.target.value)} required />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>
+                        {editingBookId !== null ? 'Update Book' : 'Add Book to Website'}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Right side: Catalog List */}
+                  <div className="card" style={{ gridColumn: 'span 2' }}>
+                    <div className="section-title">
+                      <h3>Live Website Books Catalog ({catalogBooks.length})</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Cover</th>
+                            <th>Title & Author</th>
+                            <th>Rating</th>
+                            <th>Description</th>
+                            <th style={{ textAlign: 'center' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {catalogBooks.map((b) => (
+                            <tr key={b.id}>
+                              <td>
+                                <img src={b.cover_image} alt={b.title} style={{ width: '42px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                              </td>
+                              <td>
+                                <b>{b.title}</b><br />
+                                <small style={{ color: 'var(--muted)' }}>By {b.author}</small>
+                              </td>
+                              <td>⭐ {b.rating}/5</td>
+                              <td>
+                                <p style={{ maxWidth: '200px', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.description}</p>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                  <button className="btn btn-soft" style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '6px' }} onClick={() => {
+                                    setEditingBookId(b.id)
+                                    setCatalogNewTitle(b.title)
+                                    setCatalogNewAuthor(b.author)
+                                    setCatalogNewCoverImage(b.cover_image)
+                                    setCatalogNewDescription(b.description || '')
+                                    setCatalogNewRating(String(b.rating))
+                                  }}>Edit</button>
+                                  <button className="btn" style={{ background: '#ef4444', color: '#fff', padding: '6px 12px', fontSize: '11px', borderRadius: '6px', fontWeight: 'bold' }} onClick={() => handleCatalogBookDelete(b.id)}>Delete</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* ABOUT PAGE SUB-TAB */}
+            {cmsPageTab === 'about' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="card">
+                  <div className="section-title">
+                    <h3>About Page Section Texts</h3>
+                  </div>
+                  <form onSubmit={handleAboutTextSubmit} style={{ marginTop: '16px' }}>
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px' }}>
+                      1. Hero Section & Story Section
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Hero Sub-heading</label>
+                        <input type="text" value={aboutHeroSub} onChange={(e) => setAboutHeroSub(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Hero Main Heading</label>
+                        <input type="text" value={aboutHeroHeading} onChange={(e) => setAboutHeroHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Hero Button Text</label>
+                        <input type="text" value={aboutHeroButton} onChange={(e) => setAboutHeroButton(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Hero Right Side Image (Computer Upload)</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading hero image...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setAboutHeroImage(url)
+                                showToast('Hero Image uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Hero Description</label>
+                        <textarea rows={3} value={aboutHeroDesc} onChange={(e) => setAboutHeroDesc(e.target.value)} required />
+                      </div>
+                      
+                      <div className="field">
+                        <label>Story Left Side Heading</label>
+                        <input type="text" value={aboutStoryHeading} onChange={(e) => setAboutStoryHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Story Right Side Image (Computer Upload)</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading story image...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setAboutStoryImage(url)
+                                showToast('Story Image uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Story Left Side Description</label>
+                        <textarea rows={3} value={aboutStoryDesc} onChange={(e) => setAboutStoryDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px' }}>
+                      2. Our Mission & Why Choose MB & Journey
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Mission Heading</label>
+                        <input type="text" value={aboutMissionHeading} onChange={(e) => setAboutMissionHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Why Choose MB Heading</label>
+                        <input type="text" value={aboutChooseHeading} onChange={(e) => setAboutChooseHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Mission Description</label>
+                        <textarea rows={3} value={aboutMissionDesc} onChange={(e) => setAboutMissionDesc(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Why Choose MB Description</label>
+                        <textarea rows={3} value={aboutChooseDesc} onChange={(e) => setAboutChooseDesc(e.target.value)} required />
+                      </div>
+                      
+                      <div className="field">
+                        <label>Publishing Journey Heading</label>
+                        <input type="text" value={aboutJourneyHeading} onChange={(e) => setAboutJourneyHeading(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Publishing Journey Description</label>
+                        <textarea rows={3} value={aboutJourneyDesc} onChange={(e) => setAboutJourneyDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px' }}>
+                      3. Trusted Banner & CTA Bottom Section
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Trusted Quote Text</label>
+                        <textarea rows={2} value={aboutTrustedQuote} onChange={(e) => setAboutTrustedQuote(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Trusted Author Name</label>
+                        <input type="text" value={aboutTrustedName} onChange={(e) => setAboutTrustedName(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Trusted Author Photo</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading trusted photo...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setAboutTrustedImage(url)
+                                showToast('Photo uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="field">
+                        <label>CTA Heading</label>
+                        <input type="text" value={aboutCtaHeading} onChange={(e) => setAboutCtaHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>CTA Button Text</label>
+                        <input type="text" value={aboutCtaButton} onChange={(e) => setAboutCtaButton(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>CTA Description</label>
+                        <textarea rows={2} value={aboutCtaDesc} onChange={(e) => setAboutCtaDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
+                      Save About Page Text CMS
+                    </button>
+                  </form>
+                </div>
+
+                {/* Team Members List CRUD */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
+                  <div className="card">
+                    <div className="section-title">
+                      <h3>{editingTeamId !== null ? 'Edit Team Member' : 'Add New Team Member'}</h3>
+                      {editingTeamId !== null && (
+                        <button className="btn btn-soft" onClick={() => {
+                          setEditingTeamId(null)
+                          setTeamName('')
+                          setTeamRole('')
+                          setTeamDesc('')
+                          setTeamImageUrl('')
+                        }}>Cancel Edit</button>
+                      )}
+                    </div>
+                    <form onSubmit={handleTeamMemberSubmit}>
+                      <div className="form-grid">
+                        <div className="field">
+                          <label>Member Name</label>
+                          <input type="text" value={teamName} onChange={(e) => setTeamName(e.target.value)} required />
+                        </div>
+                        <div className="field">
+                          <label>Role / Position</label>
+                          <input type="text" value={teamRole} onChange={(e) => setTeamRole(e.target.value)} required placeholder="e.g. Editorial Director" />
+                        </div>
+                        <div className="field">
+                          <label>Member Photo (From Computer)</label>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                showToast('Uploading member photo...')
+                                const url = await uploadMediaToStorage(file)
+                                if (url) {
+                                  setTeamImageUrl(url)
+                                  showToast('Photo uploaded!')
+                                }
+                              }
+                            }}
+                          />
+                          {teamImageUrl && <img src={teamImageUrl} alt="Team Preview" style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '50%', marginTop: '6px' }} />}
+                        </div>
+                        <div className="field" style={{ gridColumn: 'span 2' }}>
+                          <label>Description / Bio</label>
+                          <textarea rows={3} value={teamDesc} onChange={(e) => setTeamDesc(e.target.value)} />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>
+                        {editingTeamId !== null ? 'Update Team Member' : 'Add Team Member'}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="card" style={{ gridColumn: 'span 2' }}>
+                    <div className="section-title">
+                      <h3>Live Website Team Members ({teamList.length})</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Photo</th>
+                            <th>Name & Role</th>
+                            <th>Bio Description</th>
+                            <th style={{ textAlign: 'center' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {teamList.map((tm) => (
+                            <tr key={tm.id}>
+                              <td>
+                                <img src={tm.image_url} alt={tm.name} style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '50%' }} />
+                              </td>
+                              <td>
+                                <b>{tm.name}</b><br />
+                                <small style={{ color: 'var(--muted)' }}>{tm.role}</small>
+                              </td>
+                              <td>
+                                <p style={{ fontSize: '12px', maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tm.description}</p>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                  <button className="btn btn-soft" style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }} onClick={() => {
+                                    setEditingTeamId(tm.id)
+                                    setTeamName(tm.name)
+                                    setTeamRole(tm.role)
+                                    setTeamDesc(tm.description || '')
+                                    setTeamImageUrl(tm.image_url || '')
+                                  }}>Edit</button>
+                                  <button className="btn" style={{ background: '#ef4444', color: '#fff', padding: '4px 10px', fontSize: '11px', borderRadius: '6px', fontWeight: 'bold' }} onClick={() => handleTeamMemberDelete(tm.id)}>Delete</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PRICING PAGE SUB-TAB */}
+            {cmsPageTab === 'pricing' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="card">
+                  <div className="section-title">
+                    <h3>Pricing Page Section Texts</h3>
+                  </div>
+                  <form onSubmit={handlePricingTextSubmit} style={{ marginTop: '16px' }}>
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px' }}>
+                      1. Hero Section & Packages Header
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Hero Subheading</label>
+                        <input type="text" value={pricingHeroSub} onChange={(e) => setPricingHeroSub(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Hero Heading</label>
+                        <input type="text" value={pricingHeroHeading} onChange={(e) => setPricingHeroHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Hero Button Text</label>
+                        <input type="text" value={pricingHeroButton} onChange={(e) => setPricingHeroButton(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Hero Right Side Image (Computer Upload)</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading hero image...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setPricingHeroImage(url)
+                                showToast('Hero Image uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Hero Description</label>
+                        <textarea rows={3} value={pricingHeroDesc} onChange={(e) => setPricingHeroDesc(e.target.value)} required />
+                      </div>
+                      
+                      <div className="field">
+                        <label>Packages Heading</label>
+                        <input type="text" value={pricingPackHeading} onChange={(e) => setPricingPackHeading(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Packages Description</label>
+                        <textarea rows={2} value={pricingPackDesc} onChange={(e) => setPricingPackDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px' }}>
+                      2. Compare Title & Why Choose MB Section
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Compare Section Heading</label>
+                        <input type="text" value={pricingCompareHeading} onChange={(e) => setPricingCompareHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Why Choose Heading</label>
+                        <input type="text" value={pricingWhyHeading} onChange={(e) => setPricingWhyHeading(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Why Choose Subheading</label>
+                        <input type="text" value={pricingWhySub} onChange={(e) => setPricingWhySub(e.target.value)} required />
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Why Choose Description</label>
+                        <textarea rows={3} value={pricingWhyDesc} onChange={(e) => setPricingWhyDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
+                    <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
+                      Save Pricing Page Text CMS
+                    </button>
+                  </form>
+                </div>
+
+                {/* Pricing Packages list CRUD */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
+                  <div className="card">
+                    <div className="section-title">
+                      <h3>{editingPlanId !== null ? 'Edit Pricing Plan' : 'Add New Pricing Plan'}</h3>
+                      {editingPlanId !== null && (
+                        <button className="btn btn-soft" onClick={() => {
+                          setEditingPlanId(null)
+                          setPlanName('')
+                          setPlanPrice('')
+                          setPlanPoints('')
+                          setPlanButtonText('')
+                        }}>Cancel Edit</button>
+                      )}
+                    </div>
+                    <form onSubmit={handlePricingPlanSubmit}>
+                      <div className="form-grid">
+                        <div className="field">
+                          <label>Plan Name</label>
+                          <input type="text" value={planName} onChange={(e) => setPlanName(e.target.value)} placeholder="e.g. BRONZE" required />
+                        </div>
+                        <div className="field">
+                          <label>Plan Price Amount</label>
+                          <input type="text" value={planPrice} onChange={(e) => setPlanPrice(e.target.value)} placeholder="e.g. ₹9,999" required />
+                        </div>
+                        <div className="field">
+                          <label>Button Label Text</label>
+                          <input type="text" value={planButtonText} onChange={(e) => setPlanButtonText(e.target.value)} placeholder="e.g. Choose Bronze" />
+                        </div>
+                        <div className="field" style={{ gridColumn: 'span 2' }}>
+                          <label>Plan Points (One feature per line)</label>
+                          <textarea rows={6} value={planPoints} onChange={(e) => setPlanPoints(e.target.value)} placeholder="Basic Manuscript Review&#10;ISBN Assistance&#10;Basic Cover Design" required />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>
+                        {editingPlanId !== null ? 'Update Plan' : 'Add Plan'}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="card" style={{ gridColumn: 'span 2' }}>
+                    <div className="section-title">
+                      <h3>Live Publishing Packages ({pricingPlansList.length})</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Plan Name</th>
+                            <th>Price</th>
+                            <th>Button Label</th>
+                            <th>Features Count</th>
+                            <th style={{ textAlign: 'center' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pricingPlansList.map((pl) => (
+                            <tr key={pl.id}>
+                              <td><b>{pl.name}</b></td>
+                              <td>{pl.price}</td>
+                              <td>{pl.button_text}</td>
+                              <td>{pl.points.split('\n').filter(Boolean).length} features</td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                  <button className="btn btn-soft" style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }} onClick={() => {
+                                    setEditingPlanId(pl.id)
+                                    setPlanName(pl.name)
+                                    setPlanPrice(pl.price)
+                                    setPlanPoints(pl.points)
+                                    setPlanButtonText(pl.button_text || '')
+                                  }}>Edit</button>
+                                  <button className="btn" style={{ background: '#ef4444', color: '#fff', padding: '4px 10px', fontSize: '11px', borderRadius: '6px', fontWeight: 'bold' }} onClick={() => handlePricingPlanDelete(pl.id)}>Delete</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* FAQs List CRUD */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
+                  <div className="card">
+                    <div className="section-title">
+                      <h3>{editingFaqId !== null ? 'Edit FAQ Item' : 'Add New FAQ Item'}</h3>
+                      {editingFaqId !== null && (
+                        <button className="btn btn-soft" onClick={() => {
+                          setEditingFaqId(null)
+                          setFaqQuestion('')
+                          setFaqAnswer('')
+                        }}>Cancel Edit</button>
+                      )}
+                    </div>
+                    <form onSubmit={handleFaqSubmit}>
+                      <div className="form-grid">
+                        <div className="field" style={{ gridColumn: 'span 2' }}>
+                          <label>FAQ Question</label>
+                          <input type="text" value={faqQuestion} onChange={(e) => setFaqQuestion(e.target.value)} required />
+                        </div>
+                        <div className="field" style={{ gridColumn: 'span 2' }}>
+                          <label>FAQ Answer</label>
+                          <textarea rows={4} value={faqAnswer} onChange={(e) => setFaqAnswer(e.target.value)} required />
+                        </div>
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }}>
+                        {editingFaqId !== null ? 'Update FAQ' : 'Add FAQ'}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="card" style={{ gridColumn: 'span 2' }}>
+                    <div className="section-title">
+                      <h3>Live Website FAQs ({faqsList.length})</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Question</th>
+                            <th>Answer Preview</th>
+                            <th style={{ textAlign: 'center' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {faqsList.map((fq) => (
+                            <tr key={fq.id}>
+                              <td><b>{fq.question}</b></td>
+                              <td>
+                                <p style={{ fontSize: '12px', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fq.answer}</p>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                  <button className="btn btn-soft" style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px' }} onClick={() => {
+                                    setEditingFaqId(fq.id)
+                                    setFaqQuestion(fq.question)
+                                    setFaqAnswer(fq.answer)
+                                  }}>Edit</button>
+                                  <button className="btn" style={{ background: '#ef4444', color: '#fff', padding: '4px 10px', fontSize: '11px', borderRadius: '6px', fontWeight: 'bold' }} onClick={() => handleFaqDelete(fq.id)}>Delete</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
           </div>
         )
 

@@ -2,8 +2,11 @@ import React from 'react'
 import { HeroSection } from './ui/hero-section-2'
 import logoImg from '../assets/Logo1.png'
 import logoAni from '../assets/LogoAni.mp4'
+import { useCMS } from '../lib/useCMS'
 
 const Hero: React.FC = () => {
+  const { getVal } = useCMS()
+
   return (
     <HeroSection
       logo={{
@@ -12,23 +15,18 @@ const Hero: React.FC = () => {
         text: "MB Publishers"
       }}
       slogan="Digital publication"
-      title={
-        <>
-          We Turn Ideas <br />
-          Into Published <span className="text-[#F97316]">Masterpieces.</span>
-        </>
-      }
-      subtitle="Professional book publishing and printing services helping authors bring their stories to life. From initial manuscript editing to global distribution, we guide you every step of the way."
+      title={getVal('home_hero_heading', 'Write, Publish & Sell Globally')}
+      subtitle={getVal('home_hero_text', 'We help authors transform manuscripts into beautifully printed books and distribute them across leading platforms like Amazon and Flipkart.')}
       callToAction={{
-        text: "PUBLISH YOUR BOOK",
+        text: getVal('home_hero_button', 'GET STARTED NOW'),
         href: "/contact",
       }}
       backgroundImage={logoImg}
-      backgroundVideo={logoAni}
+      backgroundVideo={getVal('home_hero_video', logoAni)}
       contactInfo={{
-        website: "mukundabookpublishers@gmail.com",
-        phone: "+91 88829 42631",
-        address: "New Delhi, India",
+        website: getVal('home_contact_email', 'publish@mbpublication.in'),
+        phone: getVal('home_contact_phone', '+91 88829 42631'),
+        address: getVal('home_contact_city', 'New Delhi, India'),
       }}
     />
   )

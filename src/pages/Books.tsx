@@ -1,8 +1,11 @@
 import React from 'react'
 import BooksGrid from '../components/BooksGrid'
 import CTABanner from '../components/CTABanner'
+import { useCMS } from '../lib/useCMS'
 
 const Books: React.FC = () => {
+  const { getVal } = useCMS()
+
   return (
     <div className="w-full bg-brand-cream text-[#2C2520] overflow-hidden">
       
@@ -16,19 +19,19 @@ const Books: React.FC = () => {
             {/* Small Label */}
             <div className="flex items-center gap-2 mb-4">
               <span className="text-[10px] sm:text-xs font-semibold text-[#F97316] uppercase tracking-widest">
-                OUR PORTFOLIO
+                {getVal('books_portfolio_label', 'OUR PORTFOLIO')}
               </span>
               <div className="w-8 h-[1.5px] bg-[#F97316]" />
             </div>
             
             {/* Main Heading */}
             <h1 className="text-3xl sm:text-5xl font-serif text-[#132C1F] font-bold leading-[1.12] mb-6 tracking-tight">
-              Our Published Books
+              {getVal('books_portfolio_title', 'Our Published Books')}
             </h1>
             
             {/* Description */}
             <p className="text-[#665E58] font-sans text-sm sm:text-base leading-relaxed max-w-2xl">
-              Explore our growing collection of professionally published books across multiple genres and categories.
+              {getVal('books_portfolio_desc', 'Explore our growing collection of professionally published books across multiple genres and categories.')}
             </p>
           </div>
         </div>

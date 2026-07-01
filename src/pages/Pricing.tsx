@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
   Check, 
@@ -15,6 +15,22 @@ import {
 
 import about1 from "../assets/about1.jfif"
 import CTABanner from "../components/CTABanner"
+import { useCMS } from '../lib/useCMS'
+import { supabase } from '../lib/supabaseClient'
+
+interface PricingPlan {
+  id: number
+  name: string
+  price: string
+  points: string
+  button_text: string | null
+}
+
+interface FaqItem {
+  id: number
+  question: string
+  answer: string
+}
 
 // Custom orange check icon component
 const OrangeCheck = () => (
@@ -24,13 +40,49 @@ const OrangeCheck = () => (
 )
 
 const Pricing: React.FC = () => {
+  const { getVal } = useCMS()
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
+  const [dbPlans, setDbPlans] = useState<PricingPlan[]>([])
+  const [dbFaqs, setDbFaqs] = useState<FaqItem[]>([])
 
   const toggleFAQ = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index)
   }
 
-  const plans = [
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('pricing_plans')
+          .select('*')
+          .order('id', { ascending: true })
+
+        if (!error && data && data.length > 0) {
+          setDbPlans(data)
+        }
+      } catch (err) {
+        console.error("Error fetching pricing plans:", err)
+      }
+    }
+    const fetchFaqs = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('faqs')
+          .select('*')
+          .order('id', { ascending: true })
+
+        if (!error && data && data.length > 0) {
+          setDbFaqs(data)
+        }
+      } catch (err) {
+        console.error("Error fetching FAQs:", err)
+      }
+    }
+    fetchPlans()
+    fetchFaqs()
+  }, [])
+
+  const defaultPlans = [
     {
       name: "BRONZE",
       price: "₹9,999",
@@ -99,7 +151,16 @@ const Pricing: React.FC = () => {
     }
   ]
 
-  const faqs = [
+  const plansToRender = dbPlans.length > 0 ? dbPlans.map((dp, idx) => ({
+    name: dp.name,
+    price: dp.price,
+    features: dp.points.split('\n').filter(Boolean).map(p => p.trim()),
+    buttonText: dp.button_text || `Choose ${dp.name}`,
+    popular: idx === 1,
+    premium: idx === dbPlans.length - 1
+  })) : defaultPlans
+
+  const defaultFaqs = [
     {
       question: "How long does publishing take?",
       answer: "Typically, the publishing process takes 4-8 weeks, depending on the complexity of the editing and design stages."
@@ -121,6 +182,11 @@ const Pricing: React.FC = () => {
       answer: "Yes, physical copies are included with all plans (ranging from 10 to 100 copies), printed with premium paper and materials."
     }
   ]
+
+  const faqsToRender = dbFaqs.length > 0 ? dbFaqs.map(df => ({
+    question: df.question,
+    answer: df.answer
+  })) : defaultFaqs
 
   const chooseCards = [
     {
@@ -163,20 +229,19 @@ const Pricing: React.FC = () => {
               {/* Badge */}
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-[10px] sm:text-xs font-semibold text-[#F97316] uppercase tracking-widest">
-                  AFFORDABLE PUBLISHING PACKAGES
+                  {getVal('pricing_hero_sub', 'AFFORDABLE PUBLISHING PACKAGES')}
                 </span>
                 <div className="w-8 h-[1.5px] bg-[#F97316]" />
               </div>
               
               {/* Heading */}
               <h1 className="text-3xl sm:text-4xl lg:text-[40px] xl:text-[52px] font-serif text-[#132C1F] leading-[1.12] mb-6 font-bold tracking-tight">
-                Choose The Perfect<br />
-                Publishing Plan For <span className="text-[#F97316]">Your Book.</span>
+                {getVal('pricing_hero_heading', 'Choose The Perfect Publishing Plan For Your Book.')}
               </h1>
               
               {/* Description */}
               <p className="text-[#665E58] font-sans text-[13px] sm:text-sm mb-8 leading-relaxed max-w-xl">
-                Whether you're a first-time author or an established writer, MB Publisher offers flexible publishing packages tailored to your goals and budget.
+                {getVal('pricing_hero_desc', 'Whether you\'re a first-time author or an established writer, MB Publisher offers flexible publishing packages tailored to your goals and budget.')}
               </p>
               
               {/* Buttons */}
@@ -185,7 +250,7 @@ const Pricing: React.FC = () => {
                   to="/contact"
                   className="px-6 py-3 bg-[#F97316] hover:bg-[#ea6c0a] text-white font-sans font-semibold text-center rounded-xl hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg text-[10px] tracking-wider uppercase"
                 >
-                  Get Free Consultation
+                  {getVal('pricing_hero_button', 'Get Free Consultation')}
                 </Link>
                 <a
                   href="#compare-plans"
@@ -200,7 +265,7 @@ const Pricing: React.FC = () => {
             <div>
               <div className="relative w-full h-[280px] sm:h-[380px] lg:h-[480px] rounded-2xl overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.04)] border border-[#E6E0D5]/50">
                 <img
-                  src={about1}
+                  src={getVal('pricing_hero_image', about1)}
                   alt="Cozy workspace with books, typewriter and coffee mug"
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                 />
@@ -218,17 +283,17 @@ const Pricing: React.FC = () => {
           {/* Centered Heading */}
           <div className="flex flex-col items-center mb-12">
             <h2 className="font-serif text-[28px] lg:text-[36px] font-bold text-[#111827] text-center leading-tight">
-              Publishing Packages
+              {getVal('pricing_pack_heading', 'Publishing Packages')}
             </h2>
             <p className="text-xs sm:text-sm text-[#665E58] font-sans text-center mt-3 max-w-lg">
-              Select the package that best fits your publishing journey.
+              {getVal('pricing_pack_desc', 'Select the package that best fits your publishing journey.')}
             </p>
             <div className="w-[45px] h-[3px] bg-[#F97316] rounded-full mt-3" />
           </div>
           
           {/* 4 Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-stretch">
-            {plans.map((plan, index) => {
+            {plansToRender.map((plan, index) => {
               // Determine card border & shadow styles
               let cardClass = "bg-white flex flex-col justify-between p-6 sm:p-8 rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.02)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_45px_rgba(0,0,0,0.05)] relative "
               
@@ -303,7 +368,7 @@ const Pricing: React.FC = () => {
           {/* Centered Heading */}
           <div className="flex flex-col items-center mb-12">
             <h2 className="font-serif text-[28px] lg:text-[36px] font-bold text-[#111827] text-center leading-tight">
-              Compare All Plans
+              {getVal('pricing_compare_heading', 'Compare All Plans')}
             </h2>
             <div className="w-[45px] h-[3px] bg-[#F97316] rounded-full mt-3" />
           </div>
@@ -407,8 +472,14 @@ const Pricing: React.FC = () => {
           {/* Centered Heading */}
           <div className="flex flex-col items-center mb-12">
             <h2 className="font-serif text-[28px] lg:text-[36px] font-bold text-[#111827] text-center leading-tight">
-              Why Choose MB Publisher?
+              {getVal('pricing_why_heading', 'Why Choose MB Publisher?')}
             </h2>
+            <p className="text-[#665E58] text-xs font-semibold uppercase tracking-widest block text-center mt-2.5">
+              {getVal('pricing_why_sub', 'Quality publication service')}
+            </p>
+            <p className="text-[13px] text-[#665E58] leading-relaxed text-center mt-3 max-w-xl mx-auto">
+              {getVal('pricing_why_desc', 'We ensure complete quality editing, layout design, copyright, printing and bookstore availability.')}
+            </p>
             <div className="w-[45px] h-[3px] bg-[#F97316] rounded-full mt-3" />
           </div>
           
@@ -449,7 +520,7 @@ const Pricing: React.FC = () => {
           
           {/* Accordion Accordion */}
           <div className="max-w-3xl mx-auto">
-            {faqs.map((faq, index) => (
+            {faqsToRender.map((faq, index) => (
               <div 
                 key={index} 
                 className="bg-white border border-[#E6E0D5]/60 rounded-[12px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.01)] transition-all duration-300 mb-4"

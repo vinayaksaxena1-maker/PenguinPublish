@@ -1,7 +1,9 @@
 import React from 'react'
 import { BookOpen, Users, Truck, LifeBuoy, ShieldCheck } from 'lucide-react'
+import { useCMS } from '../lib/useCMS'
 
 const FeatureHighlights: React.FC = () => {
+  const { getVal } = useCMS()
   const features = [
     {
       icon: <BookOpen className="w-5 h-5 text-[#F97316]" />,
@@ -31,7 +33,18 @@ const FeatureHighlights: React.FC = () => {
   ]
 
   return (
-    <div className="site-container relative z-30 mt-12 mb-12 sm:mb-16">
+    <div className="site-container relative z-30 mt-16 mb-12 sm:mb-16">
+      
+      {/* Premium Section Title */}
+      <div className="flex flex-col items-center mb-10 text-center max-w-2xl mx-auto">
+        <h2 className="font-serif text-2xl sm:text-4xl font-bold text-[var(--text-dark)] leading-tight">
+          {getVal('home_premium_heading', 'Why Choose MB Publisher?')}
+        </h2>
+        <p className="text-sm text-[var(--text-muted)] mt-3 leading-relaxed">
+          {getVal('home_premium_text', 'We offer premium publishing services with a dedicated project manager, complete transparency, and weekly support.')}
+        </p>
+      </div>
+
       {/* Dynamic box card support light/dark context */}
       <div className="w-full bg-[var(--bg-secondary)] rounded-[24px] border border-[var(--border-color)] shadow-[0_15px_40px_rgba(0,0,0,0.15)] overflow-hidden">
         
