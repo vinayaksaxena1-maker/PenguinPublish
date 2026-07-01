@@ -69,5 +69,14 @@ export function useDocumentMetadata({
     if (ogImage) {
       setMetaTag('twitter:image', ogImage)
     }
+
+    // 6. GA4 SPA Route Change Tracking
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'page_view', {
+        page_title: title,
+        page_location: window.location.href,
+        page_path: window.location.pathname
+      })
+    }
   }, [title, description, canonicalUrl, ogImage, ogType])
 }
