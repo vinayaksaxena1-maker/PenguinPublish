@@ -44,8 +44,8 @@ const Pricing: React.FC = () => {
   const { getVal } = useCMS()
 
   useDocumentMetadata({
-    title: getVal('pricing_seo_title', 'Publishing Packages & Pricing Plans | MB Publisher'),
-    description: getVal('pricing_seo_desc', 'Compare our Bronze, Silver, Gold, and Diamond publishing packages. Transparent pricing, 100% author royalties, and professional editing.'),
+    title: getVal('pricing_seo_title', 'Affordable Publishing Packages for Indian Authors | MB Publisher'),
+    description: getVal('pricing_seo_desc', 'Compare affordable self-publishing packages and plans. We offer customized hardback and paperback printing, manuscript formatting, ISBN support, and 100% royalties.'),
     ogImage: getVal('pricing_seo_image', '')
   })
 

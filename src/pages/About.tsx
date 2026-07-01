@@ -50,8 +50,8 @@ const About: React.FC = () => {
   const { getVal } = useCMS()
 
   useDocumentMetadata({
-    title: getVal('about_seo_title', 'Our Story & Publishing Journey | About MB Publisher'),
-    description: getVal('about_seo_desc', 'Learn how MB Publisher helps independent authors realize their dreams through expert editing, layout designs, and global distribution.'),
+    title: getVal('about_seo_title', 'Best Self-Publishing Company for New Authors | About MB Publisher'),
+    description: getVal('about_seo_desc', 'MB Publisher is the best self-publishing company for new authors. We assist with manuscript editing, proofreading, professional cover design, and publishing on online stores.'),
     ogImage: getVal('about_seo_image', '')
   })
 

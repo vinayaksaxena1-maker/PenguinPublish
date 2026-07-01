@@ -8,8 +8,8 @@ const Books: React.FC = () => {
   const { getVal } = useCMS()
 
   useDocumentMetadata({
-    title: getVal('books_seo_title', 'Our Published Books Portfolio | MB Publisher'),
-    description: getVal('books_seo_desc', 'Browse the diverse catalog of fiction, non-fiction, academic, and poetry books published by MB Publisher.'),
+    title: getVal('books_seo_title', 'Publish Your Novel on Amazon and Flipkart | Books Portfolio - MB Publisher'),
+    description: getVal('books_seo_desc', 'Read and order books from our dynamic published catalog. We provide professional cover design, paperback printing, and global book distribution services.'),
     ogImage: getVal('books_seo_image', '')
   })
 
