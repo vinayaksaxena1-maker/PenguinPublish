@@ -149,6 +149,23 @@ export const Dashboard: React.FC = () => {
           if (row.key === 'pricing_why_heading') setPricingWhyHeading(row.value)
           if (row.key === 'pricing_why_sub') setPricingWhySub(row.value)
           if (row.key === 'pricing_why_desc') setPricingWhyDesc(row.value)
+
+          // SEO Settings loading
+          if (row.key === 'home_seo_title') setHomeSeoTitle(row.value)
+          if (row.key === 'home_seo_desc') setHomeSeoDesc(row.value)
+          if (row.key === 'home_seo_image') setHomeSeoImage(row.value)
+
+          if (row.key === 'books_seo_title') setBooksSeoTitle(row.value)
+          if (row.key === 'books_seo_desc') setBooksSeoDesc(row.value)
+          if (row.key === 'books_seo_image') setBooksSeoImage(row.value)
+
+          if (row.key === 'about_seo_title') setAboutSeoTitle(row.value)
+          if (row.key === 'about_seo_desc') setAboutSeoDesc(row.value)
+          if (row.key === 'about_seo_image') setAboutSeoImage(row.value)
+
+          if (row.key === 'pricing_seo_title') setPricingSeoTitle(row.value)
+          if (row.key === 'pricing_seo_desc') setPricingSeoDesc(row.value)
+          if (row.key === 'pricing_seo_image') setPricingSeoImage(row.value)
         });
       }
 
@@ -357,6 +374,23 @@ export const Dashboard: React.FC = () => {
   const [pricingWhyHeading, setPricingWhyHeading] = useState('Why Choose MB Publisher?')
   const [pricingWhySub, setPricingWhySub] = useState('UNBEATABLE VALUE')
   const [pricingWhyDesc, setPricingWhyDesc] = useState('We combine quality, speed, and support to give your book the best chance of success in the retail market.')
+
+  // SEO METADATA STATES
+  const [homeSeoTitle, setHomeSeoTitle] = useState('MB Publisher | Write, Publish & Sell Books Globally')
+  const [homeSeoDesc, setHomeSeoDesc] = useState('We help authors edit, format, print, and sell their books globally on Amazon, Flipkart, and major retail bookstores.')
+  const [homeSeoImage, setHomeSeoImage] = useState('')
+
+  const [booksSeoTitle, setBooksSeoTitle] = useState('Our Published Books Portfolio | MB Publisher')
+  const [booksSeoDesc, setBooksSeoDesc] = useState('Browse the diverse catalog of fiction, non-fiction, academic, and poetry books published by MB Publisher.')
+  const [booksSeoImage, setBooksSeoImage] = useState('')
+
+  const [aboutSeoTitle, setAboutSeoTitle] = useState('Our Story & Publishing Journey | About MB Publisher')
+  const [aboutSeoDesc, setAboutSeoDesc] = useState('Learn how MB Publisher helps independent authors realize their dreams through expert editing, layout designs, and global distribution.')
+  const [aboutSeoImage, setAboutSeoImage] = useState('')
+
+  const [pricingSeoTitle, setPricingSeoTitle] = useState('Publishing Packages & Pricing Plans | MB Publisher')
+  const [pricingSeoDesc, setPricingSeoDesc] = useState('Compare our Bronze, Silver, Gold, and Diamond publishing packages. Transparent pricing, 100% author royalties, and professional editing.')
+  const [pricingSeoImage, setPricingSeoImage] = useState('')
 
   // DYNAMIC REPEATING ITEMS LISTS
   const [reviewsList, setReviewsList] = useState<any[]>([])
@@ -874,7 +908,10 @@ export const Dashboard: React.FC = () => {
       { key: 'home_showcase_heading', value: homeShowcaseHeading },
       { key: 'home_cta_heading', value: homeCtaHeading },
       { key: 'home_cta_desc', value: homeCtaDesc },
-      { key: 'home_cta_button', value: homeCtaButton }
+      { key: 'home_cta_button', value: homeCtaButton },
+      { key: 'home_seo_title', value: homeSeoTitle },
+      { key: 'home_seo_desc', value: homeSeoDesc },
+      { key: 'home_seo_image', value: homeSeoImage }
     ]
 
     let hasError = false
@@ -910,7 +947,10 @@ export const Dashboard: React.FC = () => {
       { key: 'cta_label', value: cmsCtaLabel },
       { key: 'cta_title', value: cmsCtaTitle },
       { key: 'cta_desc', value: cmsCtaDesc },
-      { key: 'cta_button', value: cmsCtaButton }
+      { key: 'cta_button', value: cmsCtaButton },
+      { key: 'books_seo_title', value: booksSeoTitle },
+      { key: 'books_seo_desc', value: booksSeoDesc },
+      { key: 'books_seo_image', value: booksSeoImage }
     ]
 
     let hasError = false
@@ -960,7 +1000,10 @@ export const Dashboard: React.FC = () => {
       { key: 'about_trusted_rating', value: aboutTrustedRating },
       { key: 'about_cta_heading', value: aboutCtaHeading },
       { key: 'about_cta_desc', value: aboutCtaDesc },
-      { key: 'about_cta_button', value: aboutCtaButton }
+      { key: 'about_cta_button', value: aboutCtaButton },
+      { key: 'about_seo_title', value: aboutSeoTitle },
+      { key: 'about_seo_desc', value: aboutSeoDesc },
+      { key: 'about_seo_image', value: aboutSeoImage }
     ]
 
     let hasError = false
@@ -1000,7 +1043,10 @@ export const Dashboard: React.FC = () => {
       { key: 'pricing_compare_heading', value: pricingCompareHeading },
       { key: 'pricing_why_heading', value: pricingWhyHeading },
       { key: 'pricing_why_sub', value: pricingWhySub },
-      { key: 'pricing_why_desc', value: pricingWhyDesc }
+      { key: 'pricing_why_desc', value: pricingWhyDesc },
+      { key: 'pricing_seo_title', value: pricingSeoTitle },
+      { key: 'pricing_seo_desc', value: pricingSeoDesc },
+      { key: 'pricing_seo_image', value: pricingSeoImage }
     ]
 
     let hasError = false
@@ -2434,8 +2480,41 @@ export const Dashboard: React.FC = () => {
                       </div>
                     </div>
 
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px', marginTop: '20px' }}>
+                      4. Home Page Search Engine Optimization (SEO) & Social Cards
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Google Search Title (Meta Title)</label>
+                        <input type="text" value={homeSeoTitle} onChange={(e) => setHomeSeoTitle(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Social Card Image (Open Graph Share Image)</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading SEO image...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setHomeSeoImage(url)
+                                showToast('SEO Image uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                        {homeSeoImage && <img src={homeSeoImage} alt="SEO Preview" style={{ width: '80px', height: '42px', objectFit: 'cover', borderRadius: '4px', marginTop: '6px' }} />}
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Google Search Description (Meta Description)</label>
+                        <textarea rows={3} value={homeSeoDesc} onChange={(e) => setHomeSeoDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
                     <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
-                      Save Home Page Text CMS
+                      Save Home Page Text & SEO CMS
                     </button>
                   </form>
                 </div>
@@ -2596,8 +2675,42 @@ export const Dashboard: React.FC = () => {
                         <textarea rows={3} value={cmsCtaDesc} onChange={(e) => setCmsCtaDesc(e.target.value)} required />
                       </div>
                     </div>
+
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px', marginTop: '20px' }}>
+                      Books Page Search Engine Optimization (SEO) & Social Cards
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Google Search Title (Meta Title)</label>
+                        <input type="text" value={booksSeoTitle} onChange={(e) => setBooksSeoTitle(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Social Card Image (Open Graph Share Image)</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading SEO image...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setBooksSeoImage(url)
+                                showToast('SEO Image uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                        {booksSeoImage && <img src={booksSeoImage} alt="SEO Preview" style={{ width: '80px', height: '42px', objectFit: 'cover', borderRadius: '4px', marginTop: '6px' }} />}
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Google Search Description (Meta Description)</label>
+                        <textarea rows={3} value={booksSeoDesc} onChange={(e) => setBooksSeoDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
                     <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
-                      Save Book Page Text CMS
+                      Save Book Page Text & SEO CMS
                     </button>
                   </form>
                 </div>
@@ -2866,8 +2979,41 @@ export const Dashboard: React.FC = () => {
                       </div>
                     </div>
 
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px', marginTop: '20px' }}>
+                      About Page Search Engine Optimization (SEO) & Social Cards
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Google Search Title (Meta Title)</label>
+                        <input type="text" value={aboutSeoTitle} onChange={(e) => setAboutSeoTitle(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Social Card Image (Open Graph Share Image)</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading SEO image...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setAboutSeoImage(url)
+                                showToast('SEO Image uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                        {aboutSeoImage && <img src={aboutSeoImage} alt="SEO Preview" style={{ width: '80px', height: '42px', objectFit: 'cover', borderRadius: '4px', marginTop: '6px' }} />}
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Google Search Description (Meta Description)</label>
+                        <textarea rows={3} value={aboutSeoDesc} onChange={(e) => setAboutSeoDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
                     <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
-                      Save About Page Text CMS
+                      Save About Page Text & SEO CMS
                     </button>
                   </form>
                 </div>
@@ -3055,8 +3201,41 @@ export const Dashboard: React.FC = () => {
                       </div>
                     </div>
 
+                    <h4 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '15px', borderBottom: '1px dotted var(--line)', paddingBottom: '6px', marginBottom: '14px', marginTop: '20px' }}>
+                      Pricing Page Search Engine Optimization (SEO) & Social Cards
+                    </h4>
+                    <div className="form-grid" style={{ marginBottom: '20px' }}>
+                      <div className="field">
+                        <label>Google Search Title (Meta Title)</label>
+                        <input type="text" value={pricingSeoTitle} onChange={(e) => setPricingSeoTitle(e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label>Social Card Image (Open Graph Share Image)</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              showToast('Uploading SEO image...')
+                              const url = await uploadMediaToStorage(file)
+                              if (url) {
+                                setPricingSeoImage(url)
+                                showToast('SEO Image uploaded!')
+                              }
+                            }
+                          }}
+                        />
+                        {pricingSeoImage && <img src={pricingSeoImage} alt="SEO Preview" style={{ width: '80px', height: '42px', objectFit: 'cover', borderRadius: '4px', marginTop: '6px' }} />}
+                      </div>
+                      <div className="field" style={{ gridColumn: 'span 2' }}>
+                        <label>Google Search Description (Meta Description)</label>
+                        <textarea rows={3} value={pricingSeoDesc} onChange={(e) => setPricingSeoDesc(e.target.value)} required />
+                      </div>
+                    </div>
+
                     <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px' }}>
-                      Save Pricing Page Text CMS
+                      Save Pricing Page Text & SEO CMS
                     </button>
                   </form>
                 </div>

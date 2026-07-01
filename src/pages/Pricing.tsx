@@ -17,6 +17,7 @@ import about1 from "../assets/about1.jfif"
 import CTABanner from "../components/CTABanner"
 import { useCMS } from '../lib/useCMS'
 import { supabase } from '../lib/supabaseClient'
+import { useDocumentMetadata } from '../hooks/useDocumentMetadata'
 
 interface PricingPlan {
   id: number
@@ -41,6 +42,13 @@ const OrangeCheck = () => (
 
 const Pricing: React.FC = () => {
   const { getVal } = useCMS()
+
+  useDocumentMetadata({
+    title: getVal('pricing_seo_title', 'Publishing Packages & Pricing Plans | MB Publisher'),
+    description: getVal('pricing_seo_desc', 'Compare our Bronze, Silver, Gold, and Diamond publishing packages. Transparent pricing, 100% author royalties, and professional editing.'),
+    ogImage: getVal('pricing_seo_image', '')
+  })
+
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
   const [dbPlans, setDbPlans] = useState<PricingPlan[]>([])
   const [dbFaqs, setDbFaqs] = useState<FaqItem[]>([])

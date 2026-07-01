@@ -15,6 +15,7 @@ import about2 from "../assets/about2.jfif"
 import CTABanner from "../components/CTABanner"
 import { useCMS } from '../lib/useCMS'
 import { supabase } from '../lib/supabaseClient'
+import { useDocumentMetadata } from '../hooks/useDocumentMetadata'
 
 interface TeamMember {
   id: number
@@ -47,6 +48,13 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const About: React.FC = () => {
   const { getVal } = useCMS()
+
+  useDocumentMetadata({
+    title: getVal('about_seo_title', 'Our Story & Publishing Journey | About MB Publisher'),
+    description: getVal('about_seo_desc', 'Learn how MB Publisher helps independent authors realize their dreams through expert editing, layout designs, and global distribution.'),
+    ogImage: getVal('about_seo_image', '')
+  })
+
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
 
   useEffect(() => {

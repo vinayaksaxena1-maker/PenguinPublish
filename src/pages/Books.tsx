@@ -2,9 +2,16 @@ import React from 'react'
 import BooksGrid from '../components/BooksGrid'
 import CTABanner from '../components/CTABanner'
 import { useCMS } from '../lib/useCMS'
+import { useDocumentMetadata } from '../hooks/useDocumentMetadata'
 
 const Books: React.FC = () => {
   const { getVal } = useCMS()
+
+  useDocumentMetadata({
+    title: getVal('books_seo_title', 'Our Published Books Portfolio | MB Publisher'),
+    description: getVal('books_seo_desc', 'Browse the diverse catalog of fiction, non-fiction, academic, and poetry books published by MB Publisher.'),
+    ogImage: getVal('books_seo_image', '')
+  })
 
   return (
     <div className="w-full bg-brand-cream text-[#2C2520] overflow-hidden">
