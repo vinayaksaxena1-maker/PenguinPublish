@@ -13,8 +13,8 @@ const Home: React.FC = () => {
   const { getVal } = useCMS()
 
   useDocumentMetadata({
-    title: getVal('home_seo_title', 'Book Publishing Services in India | Self-Publishing Platform - MB Publisher'),
-    description: getVal('home_seo_desc', 'MB Publisher is one of the leading self-publishing companies in India. Publish your book online with professional manuscript editing and global distribution on Amazon and Flipkart.'),
+    title: getVal('home_seo_title', 'Book Publishing Services in India | Self-Publishing Company in New Delhi - MB Publisher'),
+    description: getVal('home_seo_desc', 'MB Publisher, based in New Delhi, is one of the leading self-publishing companies in India. Publish your book online with professional manuscript editing, cover design, and global distribution on Amazon and Flipkart.'),
     ogImage: getVal('home_seo_image', '')
   })
 
