@@ -316,7 +316,7 @@ export const Dashboard: React.FC = () => {
   const [homeHeroText, setHomeHeroText] = useState('We help authors transform manuscripts into beautifully printed books and distribute them across leading platforms like Amazon and Flipkart.')
   const [homeHeroButton, setHomeHeroButton] = useState('GET STARTED NOW')
   const [homeHeroVideo, setHomeHeroVideo] = useState('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4')
-  const [homeContactEmail, setHomeContactEmail] = useState('publish@mbpublishers.com')
+  const [homeContactEmail, setHomeContactEmail] = useState('info@mbpublishers.com')
   const [homeContactPhone, setHomeContactPhone] = useState('+91 98765 43210')
   const [homeContactCity, setHomeContactCity] = useState('New Delhi, India')
   const [homeMarqueeText, setHomeMarqueeText] = useState('JOIN THOUSANDS OF AUTHORS • WORLDWIDE DISTRIBUTION • 100% ROYALTY • EASY MONTHLY PAYOUTS')

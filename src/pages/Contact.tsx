@@ -158,8 +158,8 @@ const Contact: React.FC = () => {
                 <Mail className="w-5 h-5" />
               </div>
               <h3 className="font-sans font-bold text-sm text-[#111827] mb-2">Email Us</h3>
-              <a href="mailto:mukundabookpublishers@gmail.com" className="text-xs text-[#665E58] font-medium leading-relaxed hover:text-[#F97316] transition-colors">
-                mukundabookpublishers@gmail.com
+              <a href="mailto:info@mbpublishers.com" className="text-xs text-[#665E58] font-medium leading-relaxed hover:text-[#F97316] transition-colors">
+                info@mbpublishers.com
               </a>
             </div>
             

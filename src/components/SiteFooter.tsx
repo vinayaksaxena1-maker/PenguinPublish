@@ -205,11 +205,11 @@ const SiteFooter: React.FC = () => {
                   <polyline points="22,6 12,13 2,6" />
                 </svg>
               </span>
-              <a href="mailto:mukundabookpublishers@gmail.com" style={{ fontSize: '10px', color: '#D1D5DB', textDecoration: 'none' }}
+              <a href="mailto:info@mbpublishers.com" style={{ fontSize: '10px', color: '#D1D5DB', textDecoration: 'none' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#F97316' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#D1D5DB' }}
               >
-                mukundabookpublishers@gmail.com
+                info@mbpublishers.com
               </a>
             </div>
 
