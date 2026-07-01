@@ -1,5 +1,5 @@
 # robots.txt for MB Publisher
-# https://mbpublication.in
+# https://mbpublishers.com
 
 User-agent: *
 Allow: /
@@ -7,7 +7,7 @@ Disallow: /dashboard
 Disallow: /login
 
 # Sitemap location
-Sitemap: https://mbpublication.in/sitemap.xml
+Sitemap: https://mbpublishers.com/sitemap.xml
 
 # Crawl-delay (optional, for polite crawling)
 Crawl-delay: 5
