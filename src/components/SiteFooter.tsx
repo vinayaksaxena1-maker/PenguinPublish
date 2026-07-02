@@ -325,7 +325,7 @@ const SiteFooter: React.FC = () => {
           className="site-container"
         >
           <span style={{ fontSize: '14px', color: '#9CA3AF' }}>
-            &copy; 2025 MB Publisher. All Rights Reserved.
+            &copy; 2026 MB Publisher. All Rights Reserved. | Created By : Innovix
           </span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#9CA3AF' }}>
