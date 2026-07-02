@@ -1485,27 +1485,26 @@ export const Dashboard: React.FC = () => {
           return (
             <div className="card">
               <div className="section-title">
-                <h3>Detailed Sales</h3>
+                <h3>Payouts & Sales Ledger Report</h3>
               </div>
               <div className="table-responsive">
                 <table>
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Book Title</th>
-                      <th>ISBN</th>
-                      <th>MRP</th>
+                      <th>Date / Month</th>
+                      <th>Book Name</th>
+                      <th>Platform</th>
+                      <th>MRP (₹)</th>
                       <th>Total Copies</th>
-                      <th>Copies Sold</th>
+                      <th>Month Copies Sold</th>
                       <th>Total Royalty</th>
                       <th>Paid Royalty</th>
-                      <th>Pending Payout</th>
+                      <th>Pending Royalty</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeSalesMonths.map((m, idx) => {
                       const rowMrp = m.mrp !== undefined ? m.mrp : authorData.mrp
-                      const rowIsbn = m.isbn !== undefined ? m.isbn : authorData.isbn
                       const rowTotalCopies = m.totalCopies !== undefined ? m.totalCopies : 0
                       const rowMonthCopiesSold = m.copies || 0
                       const rowTotalRoyalty = m.royalty !== undefined ? m.royalty : 0
@@ -1516,7 +1515,11 @@ export const Dashboard: React.FC = () => {
                         <tr key={idx}>
                           <td>{formatSaleDate(m.name)}</td>
                           <td>{m.bookTitle || authorData.bookTitle}</td>
-                          <td>{rowIsbn}</td>
+                          <td>
+                            <span className="status" style={{ fontSize: '11px', padding: '2px 8px', background: m.source === 'Amazon' ? '#10b981' : '#3b82f6', color: '#fff', borderRadius: '4px' }}>
+                              {m.source}
+                            </span>
+                          </td>
                           <td>{money(rowMrp)}</td>
                           <td>{rowTotalCopies}</td>
                           <td>{rowMonthCopiesSold}</td>
