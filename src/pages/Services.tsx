@@ -106,7 +106,7 @@ const Services: React.FC = () => {
         <div className="site-container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left Content */}
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-start border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 md:p-10 bg-[var(--bg-secondary)] shadow-[0_15px_30px_rgba(0,0,0,0.02)] w-full">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-[10px] sm:text-xs font-semibold text-[#F97316] uppercase tracking-widest">
                   OUR SERVICES
