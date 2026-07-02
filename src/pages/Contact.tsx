@@ -482,8 +482,8 @@ const Contact: React.FC = () => {
               {/* Info Row 3 */}
               <div className="flex items-start gap-4">
                 <Mail className="w-5 h-5 text-[#F97316] flex-shrink-0 mt-0.5" />
-                <a href="mailto:mukundabookpublishers@gmail.com" className="text-xs sm:text-sm text-[#665E58] hover:text-[#F97316] transition-colors truncate">
-                  mukundabookpublishers@gmail.com
+                <a href="mailto:info@mbpublishers.com" className="text-xs sm:text-sm text-[#665E58] hover:text-[#F97316] transition-colors truncate">
+                  info@mbpublishers.com
                 </a>
               </div>
               
