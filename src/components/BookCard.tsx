@@ -20,30 +20,9 @@ const BookCard: React.FC<BookCardProps> = ({ book, showButton = false }) => {
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             loading="lazy"
           />
-          {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/80 z-10 opacity-90 group-hover:opacity-85 transition-opacity duration-300" />
-          
           {/* Cover Spine Shadow simulation */}
           <div className="absolute top-0 bottom-0 left-0 w-2.5 bg-gradient-to-r from-black/35 to-transparent z-20" />
           <div className="absolute top-0 bottom-0 left-[2px] w-[1px] bg-white/10 z-20" />
-          
-          {/* Cover Text Overlays */}
-          <div className="absolute inset-0 z-20 p-4 flex flex-col justify-between text-white pointer-events-none">
-            {/* Title at top */}
-            <div className="flex flex-col items-center pt-2 select-none">
-              <span className="text-[11px] sm:text-xs font-serif font-bold tracking-widest text-center leading-snug uppercase max-w-[90%] drop-shadow-md">
-                {book.title}
-              </span>
-              <div className="w-6 h-[1.5px] bg-[#F97316] mt-2 opacity-95 group-hover:w-8 transition-all duration-300" />
-            </div>
-            
-            {/* Author at bottom */}
-            <div className="flex flex-col items-center pb-2 select-none">
-              <span className="text-[8px] sm:text-[9px] font-sans font-medium tracking-widest text-white/80 text-center uppercase drop-shadow-sm">
-                {book.author}
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Book Metadata */}
