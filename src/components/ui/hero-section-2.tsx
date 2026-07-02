@@ -156,20 +156,20 @@ const HeroSection = React.forwardRef<HTMLDivElement, HeroSectionProps>(
 
             {/* Bottom Section: Footer Info */}
             <motion.footer className="mt-3 md:mt-4 w-full pt-3 border-t border-[var(--border-color)]" variants={itemVariants}>
-                <div className="grid grid-cols-1 gap-3 text-xs text-[var(--text-muted)] sm:grid-cols-[2fr_1fr_1fr] font-semibold">
-                    <div className="flex items-start min-w-0">
+                <div className="grid grid-cols-1 gap-3 text-xs text-[var(--text-muted)] sm:grid-cols-3 font-semibold">
+                    <div className="flex items-center min-w-0">
                         <InfoIcon type="website" />
-                        <span className="text-[10px] leading-snug" style={{ wordBreak: 'break-all' }}>
+                        <span className="text-[11px] leading-none truncate" title={contactInfo.website}>
                           {contactInfo.website}
                         </span>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center min-w-0">
                         <InfoIcon type="phone" />
-                        <span className="whitespace-nowrap">{contactInfo.phone}</span>
+                        <span className="text-[11px] leading-none truncate">{contactInfo.phone}</span>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center min-w-0">
                         <InfoIcon type="address" />
-                        <span>{contactInfo.address}</span>
+                        <span className="text-[11px] leading-none truncate">{contactInfo.address}</span>
                     </div>
                 </div>
             </motion.footer>

@@ -24,7 +24,7 @@ const Hero: React.FC = () => {
       backgroundImage={logoImg}
       backgroundVideo={getVal('home_hero_video', logoAni)}
       contactInfo={{
-        website: getVal('home_contact_email', 'publish@mbpublication.in'),
+        website: getVal('home_contact_email', 'info@mbpublishers.com'),
         phone: getVal('home_contact_phone', '+91 88829 42631'),
         address: getVal('home_contact_city', 'New Delhi, India'),
       }}
